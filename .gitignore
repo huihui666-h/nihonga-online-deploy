@@ -1,0 +1,6 @@
+.vercel
+__pycache__/
+*.pyc
+imports/
+scripts/instagram-seeds.txt
+.env*

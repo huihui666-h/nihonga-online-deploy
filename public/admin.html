@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>后台管理 - 日本画画家整合</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="admin-shell">
+      <header class="admin-header">
+        <div>
+          <p class="eyebrow">Admin Console</p>
+          <h1 data-i18n="adminTitle">后台管理</h1>
+          <p data-i18n="adminDesc">添加、修改、删除画家，审核用户投稿，管理验证密码。</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px"><select id="langSelect" class="lang-select"><option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option></select><a class="admin-link light" href="/">返回目录</a></div>
+      </header>
+
+      <section class="admin-login" id="adminLogin">
+        <label>
+          <span data-i18n="adminPasswordLabel">管理员密码</span>
+          <input id="adminPasswordInput" type="password" placeholder="上线时配置的 ADMIN_PASSWORD" />
+        </label>
+        <button id="adminLoginButton" type="button" data-i18n="adminLoginButton">进入后台</button>
+        <p id="adminMessage" class="message"></p>
+      </section>
+
+      <section id="adminPanel" class="admin-panel" hidden>
+        <nav class="tabs">
+          <button class="is-active" data-tab="submissionsTab" type="button" data-i18n="tabSubmissions">投稿审核</button>
+          <button data-tab="artistsTab" type="button" data-i18n="tabArtists">画家管理</button>
+          <button data-tab="rankingsTab" type="button" data-i18n="tabRankings">点击量管理</button>
+          <button data-tab="licensesTab" type="button" data-i18n="tabLicenses">密码管理</button>
+          <button data-tab="correctionsTab" type="button" data-i18n="tabCorrections">修改报告</button>
+        </nav>
+
+        <section id="artistsTab" class="tab-panel" hidden>
+          <div class="manager-grid">
+            <section class="panel">
+              <h2 data-i18n="adminQuickDetect">快速识别</h2>
+              <textarea id="profileInput" rows="10" placeholder="把 Instagram 个人主页文字整段复制到这里"></textarea>
+              <div class="button-row">
+                <button id="detectButton" type="button" data-i18n="adminDetectButton">智能识别</button>
+                <button id="newArtistButton" class="secondary" type="button" data-i18n="adminNewButton">新建空白</button>
+              </div>
+              <input id="artistSearchInput" type="search" placeholder="搜索现有画家" />
+              <div id="artistList" class="admin-list"></div>
+            </section>
+
+            <form id="artistForm" class="panel edit-form">
+              <h2 data-i18n="adminArtistForm">画家资料</h2>
+              <input id="artistIdInput" type="hidden" />
+              <label><span data-i18n="adminName">名称</span><input name="name" required /></label>
+              <label><span data-i18n="adminRomanName">英文 / 罗马字</span><input name="romanName" /></label>
+              <label><span data-i18n="adminHandle">IG handle</span><input name="handle" required placeholder="@example" /></label>
+              <label><span data-i18n="adminInstagram">Instagram 链接</span><input name="instagram" /></label>
+              <label><span data-i18n="adminSchool">学校</span><input name="school" /></label>
+              <label><span data-i18n="adminRegion">地区</span><input name="region" /></label>
+              <label><span data-i18n="adminStyles">标签</span><input name="styles" placeholder="日本画，多摩美術大学，中国/華人" /></label>
+              <label><span data-i18n="adminSource">资料来源</span><input name="sourcePage" /></label>
+              <label><span data-i18n="adminNote">备注</span><textarea name="note" rows="5"></textarea></label>
+              <div class="button-row">
+                <button type="submit" data-i18n="adminSaveButton">保存画家</button>
+                <button id="deleteArtistButton" class="danger" type="button" data-i18n="adminDeleteButton">删除画家</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section id="submissionsTab" class="tab-panel">
+          <section class="panel">
+            <h2 data-i18n="adminSubmissionsTitle">用户投稿</h2>
+            <p class="helper-message">通过后会自动加入正式画家目录；拒绝只改变状态，删除会移除投稿记录。</p>
+            <div id="submissionList" class="submission-list"></div>
+          </section>
+        </section>
+
+        <section id="rankingsTab" class="tab-panel" hidden>
+          <div class="manager-grid two">
+            <form id="rankingForm" class="panel edit-form">
+              <h2 data-i18n="adminRankingTitle">修改今日点击量</h2>
+              <label><span data-i18n="adminRankingSelect">选择画家</span><select name="artistId" required></select></label>
+              <label><span data-i18n="adminRankingCount">今日点击量</span><input name="count" type="number" min="0" max="9999" step="1" required placeholder="0-9999" /></label>
+              <button type="submit" data-i18n="adminRankingSave">保存点击量</button>
+              <p class="helper-message">只影响今天的“今日查看量排名”。填 0 可以让这个画家退出今日排名。</p>
+            </form>
+            <section class="panel">
+              <h2 data-i18n="adminRankingPreview">今日排名预览</h2>
+              <div id="rankingAdminList" class="admin-list ranking-admin-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="licensesTab" class="tab-panel" hidden>
+          <div class="manager-grid two">
+            <form id="licenseForm" class="panel edit-form">
+              <h2 data-i18n="adminLicenseTitle">新增验证密码</h2>
+              <label><span data-i18n="adminLicenseKey">验证密码</span><input name="key" placeholder="留空自动生成" /></label>
+              <label><span data-i18n="adminLicenseExpiry">有效期</span><input name="expiresAt" type="date" /></label>
+              <label><span data-i18n="adminLicenseStatus">状态</span><select name="status"><option value="active">active</option><option value="disabled">disabled</option></select></label>
+              <label><span>备注</span><input name="note" /></label>
+              <button type="submit">生成 / 添加密码</button>
+            </form>
+            <section class="panel">
+              <h2 data-i18n="adminLicenseList">密码列表</h2>
+              <div id="licenseList" class="admin-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="correctionsTab" class="tab-panel" hidden>
+          <section class="panel">
+            <h2 data-i18n="adminCorrectionTitle">用户修改报告</h2>
+            <p class="helper-message">用户提交的画家信息修改请求，核实后可在画家管理中手动修改。</p>
+            <div id="correctionList" class="submission-list"></div>
+          </section>
+        </section>
+      </section>
+    </main>
+
+    <script src="admin.js"></script>
+  </body>
+</html>

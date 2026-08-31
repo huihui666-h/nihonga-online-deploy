@@ -1,0 +1,15 @@
+{
+  "name": "nihonga-online-directory",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "export-seed": "node scripts/build-seed.js",
+    "crawl-instagram": "python scripts/instagram_import.py",
+    "audit-instagram-following": "python scripts/instagram_following_report.py",
+    "check-crawler": "python -m py_compile scripts/instagram_import.py scripts/instagram_following_report.py scripts/test_instagram_import.py scripts/test_instagram_following_report.py && python -m unittest discover -s scripts -p \"test_instagram*.py\" -v",
+    "check": "node --check api/artists.js && node --check api/verify-license.js && node --check api/admin-artists.js && node --check api/admin-licenses.js && node --check api/_auth.js && node --check api/auth-register.js && node --check api/auth-login.js && node --check api/auth-session.js && node --check api/auth-me.js && node --check api/auth-logout.js && node --check public/app.js && node --check public/admin.js && node scripts/test_auth.js && node scripts/test_auth_endpoints.js && python -m py_compile scripts/instagram_import.py scripts/instagram_following_report.py scripts/test_instagram_import.py scripts/test_instagram_following_report.py"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
