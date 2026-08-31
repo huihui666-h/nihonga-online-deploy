@@ -8,6 +8,7 @@ const {
   setCors,
   supabaseFetch
 } = require("./_supabase");
+const { publicUser, requireSameOrigin } = require("./_auth");
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -20,6 +21,17 @@ module.exports = async function handler(req, res) {
   if (!assertConfig(res) || !requireAdmin(req, res)) return;
 
   try {
+    const url = new URL(req.url, "http://localhost");
+    const resource = url.searchParams.get("resource");
+    if (resource === "users") {
+      await handleUsers(req, res, url);
+      return;
+    }
+    if (resource && resource !== "artists") {
+      sendJson(res, 400, { ok: false, message: "不支持的后台资源。" });
+      return;
+    }
+
     if (req.method === "GET") {
       const rows = await supabaseFetch("artists?select=*&order=updated_at.desc");
       sendJson(res, 200, { ok: true, artists: rows });
@@ -98,3 +110,63 @@ module.exports = async function handler(req, res) {
     });
   }
 };
+
+async function handleUsers(req, res, url) {
+  const select = "id,email,display_name,status,email_verified_at,created_at,last_login_at";
+  const listLimit = 1000;
+  res.setHeader("Cache-Control", "no-store");
+
+  if (req.method === "GET") {
+    const rows = await supabaseFetch(`site_users?select=${select}&order=created_at.desc&limit=${listLimit}`);
+    sendJson(res, 200, {
+      ok: true,
+      users: rows.map(publicUser),
+      listLimit,
+      atLimit: rows.length >= listLimit
+    });
+    return;
+  }
+
+  if (req.method === "PATCH") {
+    if (!requireSameOrigin(req, res)) return;
+    const id = String(url.searchParams.get("id") || "").trim();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      sendJson(res, 400, { ok: false, message: "用户 id 不正确。" });
+      return;
+    }
+
+    const body = await readBody(req);
+    if (!body || Array.isArray(body) || typeof body !== "object" || Object.keys(body).some((key) => key !== "status")) {
+      sendJson(res, 400, { ok: false, message: "注册用户只允许修改账户状态。" });
+      return;
+    }
+    const status = String(body.status || "").trim();
+    if (!new Set(["active", "disabled"]).has(status)) {
+      sendJson(res, 400, { ok: false, message: "用户状态只支持 active 或 disabled。" });
+      return;
+    }
+
+    if (status === "active") {
+      await supabaseFetch(`site_sessions?user_id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+    }
+
+    const rows = await supabaseFetch(`site_users?id=eq.${encodeURIComponent(id)}&select=${select}`, {
+      method: "PATCH",
+      headers: { prefer: "return=representation" },
+      body: JSON.stringify({ status })
+    });
+    if (!Array.isArray(rows) || !rows[0]) {
+      sendJson(res, 404, { ok: false, message: "注册用户不存在。" });
+      return;
+    }
+
+    if (status === "disabled") {
+      await supabaseFetch(`site_sessions?user_id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+    }
+
+    sendJson(res, 200, { ok: true, user: publicUser(rows[0]) });
+    return;
+  }
+
+  sendJson(res, 405, { ok: false, message: "注册用户管理不支持此操作。" });
+}

@@ -4,6 +4,10 @@ let adminPassword = localStorage.getItem(ADMIN_KEY) || "";
 let artists = [];
 let submissions = [];
 let rankings = [];
+let users = [];
+let usersLoaded = false;
+let usersLoading = false;
+let usersAtLimit = false;
 const expandedSubmissionIds = new Set();
 
 const els = {
@@ -25,7 +29,15 @@ const els = {
   submissionList: document.querySelector("#submissionList"),
   rankingForm: document.querySelector("#rankingForm"),
   rankingAdminList: document.querySelector("#rankingAdminList"),
-  correctionList: document.querySelector("#correctionList")
+  correctionList: document.querySelector("#correctionList"),
+  userList: document.querySelector("#userList"),
+  userListStatus: document.querySelector("#userListStatus"),
+  userSearchInput: document.querySelector("#userSearchInput"),
+  userStatusFilter: document.querySelector("#userStatusFilter"),
+  refreshUsersButton: document.querySelector("#refreshUsersButton"),
+  userTotalCount: document.querySelector("#userTotalCount"),
+  userActiveCount: document.querySelector("#userActiveCount"),
+  userDisabledCount: document.querySelector("#userDisabledCount")
 };
 
 function setMessage(message, isError = false) {
@@ -161,6 +173,113 @@ async function loadAll() {
   renderSubmissions();
   renderRankingTools();
   renderCorrections();
+}
+
+async function loadUsers() {
+  if (usersLoading) return;
+  usersLoading = true;
+  els.refreshUsersButton.disabled = true;
+  els.userListStatus.textContent = "正在读取注册用户...";
+
+  try {
+    const data = await api("/api/admin-artists?resource=users");
+    users = data.users || [];
+    usersAtLimit = Boolean(data.atLimit);
+    usersLoaded = true;
+    renderUsers();
+  } catch (error) {
+    els.userListStatus.textContent = error.message || "读取注册用户失败。";
+    setMessage(els.userListStatus.textContent, true);
+    throw error;
+  } finally {
+    usersLoading = false;
+    els.refreshUsersButton.disabled = false;
+  }
+}
+
+function renderUsers() {
+  const query = els.userSearchInput.value.trim().toLowerCase();
+  const status = els.userStatusFilter.value;
+  const activeCount = users.filter((user) => user.status === "active").length;
+  const disabledCount = users.length - activeCount;
+  const visibleUsers = users.filter((user) => {
+    const matchesQuery = !query || `${user.displayName || ""} ${user.email || ""}`.toLowerCase().includes(query);
+    const normalizedStatus = user.status === "active" ? "active" : "disabled";
+    return matchesQuery && (status === "all" || status === normalizedStatus);
+  });
+
+  els.userTotalCount.textContent = String(users.length);
+  els.userActiveCount.textContent = String(activeCount);
+  els.userDisabledCount.textContent = String(disabledCount);
+  els.userListStatus.textContent = `显示 ${visibleUsers.length} / ${users.length} 位用户${usersAtLimit ? "（已达到最近 1000 位显示上限）" : ""}`;
+  els.userList.innerHTML = "";
+
+  if (!visibleUsers.length) {
+    const empty = document.createElement("p");
+    empty.className = "user-empty";
+    empty.textContent = users.length ? "没有符合筛选条件的用户。" : "暂无注册用户。";
+    els.userList.append(empty);
+    return;
+  }
+
+  visibleUsers.forEach((user) => {
+    const isActive = user.status === "active";
+    const nextStatus = isActive ? "disabled" : "active";
+    const row = document.createElement("article");
+    row.className = "user-row";
+    row.setAttribute("role", "row");
+    row.innerHTML = `
+      <div class="user-identity" role="cell">
+        <strong>${escapeHtml(user.displayName || "未设置昵称")}</strong>
+        <span>${escapeHtml(user.email || "未填写邮箱")}</span>
+      </div>
+      <div role="cell"><span class="user-status ${isActive ? "is-active" : "is-disabled"}">${isActive ? "正常" : "已停用"}</span></div>
+      <div class="user-date" role="cell"><span>注册时间</span><time>${escapeHtml(formatAdminDate(user.createdAt, "未知"))}</time></div>
+      <div class="user-date" role="cell"><span>最后登录</span><time>${escapeHtml(formatAdminDate(user.lastLoginAt, "暂无记录"))}</time></div>
+      <div class="user-action" role="cell"><button class="${isActive ? "danger" : "secondary"}" type="button">${isActive ? "停用账户" : "重新启用"}</button></div>
+    `;
+
+    const actionButton = row.querySelector(".user-action button");
+    actionButton.setAttribute("aria-label", `${isActive ? "停用" : "启用"} ${user.email || "此用户"}`);
+    actionButton.addEventListener("click", () => {
+      changeUserStatus(user, nextStatus, actionButton).catch((error) => setMessage(error.message, true));
+    });
+    els.userList.append(row);
+  });
+}
+
+function formatAdminDate(value, fallback) {
+  if (!value) return fallback;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return fallback;
+  return date.toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+}
+
+async function changeUserStatus(user, nextStatus, button) {
+  if (nextStatus === "disabled" && !confirm(`确定停用 ${user.email || "此用户"}？该用户会立即退出登录。`)) return;
+
+  button.disabled = true;
+  try {
+    const data = await api(`/api/admin-artists?resource=users&id=${encodeURIComponent(user.id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: nextStatus })
+    });
+    users = users.map((item) => item.id === user.id ? data.user : item);
+    setMessage(nextStatus === "active" ? "用户已重新启用，旧会话已清除。" : "用户已停用并退出登录。");
+    renderUsers();
+  } catch (error) {
+    await loadUsers().catch(() => {});
+    throw error;
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function renderArtists() {
@@ -331,6 +450,9 @@ els.tabs.forEach((tab) => {
     els.tabPanels.forEach((panel) => {
       panel.hidden = panel.id !== tab.dataset.tab;
     });
+    if (tab.dataset.tab === "usersTab" && !usersLoaded) {
+      loadUsers().catch(() => {});
+    }
   });
 });
 
@@ -346,6 +468,11 @@ els.detectButton.addEventListener("click", () => {
 
 els.newArtistButton.addEventListener("click", () => fillArtistForm({ styles: ["日本画"], linkType: "instagram" }));
 els.artistSearchInput.addEventListener("input", renderArtists);
+els.userSearchInput.addEventListener("input", renderUsers);
+els.userStatusFilter.addEventListener("change", renderUsers);
+els.refreshUsersButton.addEventListener("click", () => {
+  loadUsers().catch(() => {});
+});
 
 els.artistForm.addEventListener("submit", async (event) => {
   event.preventDefault();

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>后台管理 - 日本画画家整合</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=5" />
   </head>
   <body>
     <main class="admin-shell">
@@ -12,7 +12,7 @@
         <div>
           <p class="eyebrow">Admin Console</p>
           <h1 data-i18n="adminTitle">后台管理</h1>
-          <p data-i18n="adminDesc">添加、修改、删除画家，审核用户投稿与修改报告。</p>
+          <p data-i18n="adminDesc">管理画家、注册用户、投稿、修改报告与点击量。</p>
         </div>
         <div style="display:flex;align-items:center;gap:10px"><select id="langSelect" class="lang-select"><option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option></select><a class="admin-link light" href="/">返回目录</a></div>
       </header>
@@ -32,6 +32,7 @@
           <button data-tab="artistsTab" type="button" data-i18n="tabArtists">画家管理</button>
           <button data-tab="rankingsTab" type="button" data-i18n="tabRankings">点击量管理</button>
           <button data-tab="correctionsTab" type="button" data-i18n="tabCorrections">修改报告</button>
+          <button data-tab="usersTab" type="button">注册用户</button>
         </nav>
 
         <section id="artistsTab" class="tab-panel" hidden>
@@ -98,9 +99,54 @@
             <div id="correctionList" class="submission-list"></div>
           </section>
         </section>
+
+        <section id="usersTab" class="tab-panel" hidden>
+          <section class="panel users-panel">
+            <div class="users-heading">
+              <div>
+                <h2>注册用户</h2>
+                <p class="helper-message">查看邮箱账户及登录时间；停用账户会立即清除其登录会话。</p>
+              </div>
+              <button id="refreshUsersButton" class="secondary" type="button">刷新</button>
+            </div>
+
+            <div class="user-stats" aria-label="注册用户统计">
+              <div><strong id="userTotalCount">0</strong><span>已加载用户</span></div>
+              <div><strong id="userActiveCount">0</strong><span>正常</span></div>
+              <div><strong id="userDisabledCount">0</strong><span>已停用</span></div>
+            </div>
+
+            <div class="user-toolbar">
+              <label>
+                <span>搜索用户</span>
+                <input id="userSearchInput" type="search" placeholder="搜索邮箱或昵称" />
+              </label>
+              <label>
+                <span>账户状态</span>
+                <select id="userStatusFilter">
+                  <option value="all">全部状态</option>
+                  <option value="active">正常</option>
+                  <option value="disabled">已停用</option>
+                </select>
+              </label>
+            </div>
+
+            <p id="userListStatus" class="helper-message" role="status" aria-live="polite"></p>
+            <div class="user-table" role="table" aria-label="注册用户列表">
+              <div class="user-table-head" role="row">
+                <span role="columnheader">用户</span>
+                <span role="columnheader">状态</span>
+                <span role="columnheader">注册时间</span>
+                <span role="columnheader">最后登录</span>
+                <span role="columnheader">操作</span>
+              </div>
+              <div id="userList" class="user-list" role="rowgroup"></div>
+            </div>
+          </section>
+        </section>
       </section>
     </main>
 
-    <script src="admin.js"></script>
+    <script src="admin.js?v=2"></script>
   </body>
 </html>

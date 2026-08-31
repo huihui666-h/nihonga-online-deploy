@@ -69,7 +69,8 @@ module.exports = async function handler(req, res) {
           email,
           password_hash: passwordHash,
           display_name: displayName,
-          status: "active"
+          status: "active",
+          last_login_at: new Date().toISOString()
         })
       });
     } catch (error) {

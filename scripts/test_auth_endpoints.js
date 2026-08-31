@@ -107,6 +107,7 @@ async function main() {
   });
   assert.strictEqual(registered.statusCode, 201);
   assert.strictEqual(registered.json().user.email, "artist@example.com");
+  assert.ok(registered.json().user.lastLoginAt);
   assert.ok(!registered.body.includes("password_hash"));
   assert.notStrictEqual(users[0].password_hash, "strong-password");
 

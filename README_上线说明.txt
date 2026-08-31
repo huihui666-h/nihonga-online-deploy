@@ -83,6 +83,10 @@ Instagram 的 robots.txt 不允许通用自动抓取时，脚本会记录 skippe
 - GET /api/auth-session：检查当前登录状态
 - POST /api/auth-logout：退出登录
 
+后台 `/admin` 的“注册用户”栏目通过现有 `/api/admin-artists?resource=users`
+读取账户列表，并可将账户状态设为 `active` 或 `disabled`。接口只返回公开账户字段，
+不会返回密码哈希；停用或重新启用时都会清除该用户的旧登录会话。
+
 密码使用 Node.js 内置 crypto.scrypt 哈希。默认长期登录为 30 天，可在 Vercel 添加 AUTH_SESSION_DAYS（1-365）修改；未勾选“记住登录”时使用浏览器会话 Cookie，服务端最长保留 1 天。后台管理员密码仍由 ADMIN_PASSWORD 单独控制。
 
 当前实现是“注册后直接登录”。email_verified_at 字段已经预留；若以后要求先验证邮箱，再接入邮件服务并把登录条件改为 email_verified_at 非空。
