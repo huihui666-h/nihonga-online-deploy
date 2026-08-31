@@ -2,7 +2,6 @@ const ADMIN_KEY = "nihongaAdminPassword";
 
 let adminPassword = localStorage.getItem(ADMIN_KEY) || "";
 let artists = [];
-let licenses = [];
 let submissions = [];
 let rankings = [];
 const expandedSubmissionIds = new Set();
@@ -26,8 +25,6 @@ const els = {
   submissionList: document.querySelector("#submissionList"),
   rankingForm: document.querySelector("#rankingForm"),
   rankingAdminList: document.querySelector("#rankingAdminList"),
-  licenseForm: document.querySelector("#licenseForm"),
-  licenseList: document.querySelector("#licenseList"),
   correctionList: document.querySelector("#correctionList")
 };
 
@@ -152,18 +149,15 @@ function detectFromProfile(text) {
 }
 
 async function loadAll() {
-  const [artistData, licenseData, submissionData, rankingData] = await Promise.all([
+  const [artistData, submissionData, rankingData] = await Promise.all([
     api("/api/admin-artists"),
-    api("/api/admin-licenses"),
     api("/api/admin-submissions"),
     api("/api/admin-rankings")
   ]);
   artists = artistData.artists || [];
-  licenses = licenseData.licenses || [];
   submissions = submissionData.submissions || [];
   rankings = rankingData.rankings || [];
   renderArtists();
-  renderLicenses();
   renderSubmissions();
   renderRankingTools();
   renderCorrections();
@@ -288,28 +282,6 @@ function renderRankingTools() {
   });
 }
 
-function renderLicenses() {
-  els.licenseList.innerHTML = "";
-  licenses.forEach((card) => {
-    const row = document.createElement("div");
-    row.className = "license-row";
-    row.innerHTML = `
-      <div>
-        <strong>${escapeHtml(card.key)}</strong>
-        <span>${escapeHtml(card.status)} · ${escapeHtml(card.expires_at || "长期")} · ${escapeHtml(card.note || "")}</span>
-      </div>
-      <button class="danger" type="button">删除</button>
-    `;
-    row.querySelector("button").addEventListener("click", async () => {
-      if (!confirm(`确定删除密码 ${card.key}？`)) return;
-      await api(`/api/admin-licenses?key=${encodeURIComponent(card.key)}`, { method: "DELETE" });
-      setMessage("密码已删除。");
-      await loadAll();
-    });
-    els.licenseList.append(row);
-  });
-}
-
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -399,20 +371,6 @@ els.deleteArtistButton.addEventListener("click", async () => {
   await api(`/api/admin-artists?id=${encodeURIComponent(id)}`, { method: "DELETE" });
   fillArtistForm({ styles: ["日本画"], linkType: "instagram" });
   setMessage("画家已删除。");
-  await loadAll();
-});
-
-els.licenseForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const payload = {
-    key: els.licenseForm.elements.key.value.trim(),
-    expiresAt: els.licenseForm.elements.expiresAt.value || null,
-    status: els.licenseForm.elements.status.value,
-    note: els.licenseForm.elements.note.value.trim()
-  };
-  await api("/api/admin-licenses", { method: "POST", body: JSON.stringify(payload) });
-  els.licenseForm.reset();
-  setMessage("密码已生成 / 添加。");
   await loadAll();
 });
 

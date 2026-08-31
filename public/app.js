@@ -1,5 +1,6 @@
 ﻿const ALL = "全部";
 const CACHE_KEY = "nihongaOnlineArtists";
+const GUEST_KEY = "nihongaGuestAccess";
 
 const state = {
   artists: [],
@@ -29,6 +30,7 @@ const els = {
   passwordConfirmInput: document.querySelector("#passwordConfirmInput"),
   rememberLoginInput: document.querySelector("#rememberLoginInput"),
   loginButton: document.querySelector("#loginButton"),
+  guestLoginButton: document.querySelector("#guestLoginButton"),
   loginMessage: document.querySelector("#loginMessage"),
   logoutButton: document.querySelector("#logoutButton"),
   searchInput: document.querySelector("#searchInput"),
@@ -132,11 +134,22 @@ function showLogin(message = "", isError = false) {
 }
 
 async function unlockWithSession(result, silent = false) {
+  sessionStorage.removeItem(GUEST_KEY);
   state.user = authUserFromResponse(result) || {};
   if (!silent) setMessage(result.message || I18N.t("loginSuccess"));
   await loadArtists();
   await loadRankings();
   if (!silent) await delay(350);
+  showDirectory();
+}
+
+async function unlockAsGuest(silent = false) {
+  state.user = { guest: true };
+  sessionStorage.setItem(GUEST_KEY, "1");
+  if (!silent) setMessage(I18N.t("guestLoading"));
+  await loadArtists();
+  await loadRankings();
+  if (!silent) await delay(250);
   showDirectory();
 }
 
@@ -201,6 +214,15 @@ async function restoreSession() {
     }
   } catch {
     // An unavailable session endpoint should leave the sign-in form usable.
+  }
+
+  if (sessionStorage.getItem(GUEST_KEY) === "1") {
+    try {
+      await unlockAsGuest(true);
+      return true;
+    } catch {
+      sessionStorage.removeItem(GUEST_KEY);
+    }
   }
   return false;
 }
@@ -450,6 +472,18 @@ els.loginForm.addEventListener("submit", (event) => {
 els.loginModeButton.addEventListener("click", () => setAuthMode("login"));
 els.registerModeButton.addEventListener("click", () => setAuthMode("register"));
 
+els.guestLoginButton.addEventListener("click", async () => {
+  els.guestLoginButton.disabled = true;
+  try {
+    await unlockAsGuest();
+  } catch (error) {
+    sessionStorage.removeItem(GUEST_KEY);
+    showLogin(error.message, true);
+  } finally {
+    els.guestLoginButton.disabled = false;
+  }
+});
+
 els.logoutButton.addEventListener("click", async () => {
   els.logoutButton.disabled = true;
   try {
@@ -458,6 +492,7 @@ els.logoutButton.addEventListener("click", async () => {
     // Clear the local view even if the server session has already expired.
   } finally {
     els.logoutButton.disabled = false;
+    sessionStorage.removeItem(GUEST_KEY);
     state.user = null;
     els.emailInput.value = "";
     els.passwordInput.value = "";

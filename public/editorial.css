@@ -474,6 +474,26 @@ h4,
   transform: translateY(-1px);
 }
 
+.login-card > .guest-login-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  background: transparent;
+  font-weight: 600;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.login-card > .guest-login-button:hover,
+.login-card > .guest-login-button:focus-visible {
+  border-color: var(--pine);
+  background: rgba(39, 80, 68, 0.06);
+  outline: none;
+  transform: translateY(-1px);
+}
+
 .login-lang-row {
   padding-top: 14px;
   border-top: 1px solid var(--line);
@@ -1291,11 +1311,11 @@ h4,
 
   .login-overlay {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(210px, 32vh) auto;
+    grid-template-rows: minmax(180px, 24vh) auto;
   }
 
   .login-art {
-    min-height: 210px;
+    min-height: 180px;
     grid-column: 1;
     grid-row: 1;
   }
@@ -1304,11 +1324,23 @@ h4,
     width: min(440px, calc(100% - 40px));
     grid-column: 1;
     grid-row: 2;
-    padding: 28px 0 38px;
+    padding: 20px 0 32px;
   }
 
   .login-brand-mark {
-    margin-bottom: 22px;
+    margin-bottom: 14px;
+  }
+
+  .auth-mode-tabs {
+    margin: 14px 0 16px;
+  }
+
+  .login-card label {
+    margin-top: 16px;
+  }
+
+  .login-card > button[type="submit"] {
+    margin-top: 14px;
   }
 
   .login-card h1 {

@@ -121,15 +121,6 @@ function normalizeArtist(input) {
   };
 }
 
-function normalizeLicense(input) {
-  return {
-    key: String(input.key || "").trim().toUpperCase(),
-    status: String(input.status || "active").trim() || "active",
-    expires_at: input.expires_at || input.expiresAt || null,
-    note: String(input.note || "").trim()
-  };
-}
-
 function canonicalInstagramHandle(value) {
   const text = String(value || "").trim();
   if (!text) return "";
@@ -166,7 +157,6 @@ module.exports = {
   canonicalInstagramHandle,
   findArtistDuplicate,
   normalizeArtist,
-  normalizeLicense,
   readBody,
   requireAdmin,
   sendJson,

@@ -965,8 +965,7 @@ button:disabled {
   margin-top: 12px;
 }
 
-.admin-list button,
-.license-row {
+.admin-list button {
   min-height: 42px;
   padding: 9px 10px;
   color: var(--ink);
@@ -977,29 +976,14 @@ button:disabled {
 }
 
 .admin-list button strong,
-.admin-list button span,
-.license-row strong,
-.license-row span {
+.admin-list button span {
   display: block;
 }
 
-.admin-list button span,
-.license-row span {
+.admin-list button span {
   margin-top: 4px;
   color: var(--muted);
   font-size: 12px;
-}
-
-.license-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-}
-
-.license-row .danger {
-  flex: 0 0 auto;
-  min-height: 34px;
 }
 
 .submission-list {

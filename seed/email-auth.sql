@@ -1,7 +1,7 @@
 -- 日本画 Archive：邮箱注册 / 登录会话表
 --
 -- 在 Supabase SQL Editor 中执行一次。此脚本只创建认证相关对象，
--- 不会读取、删除或修改 artists / licenses 中的现有数据。
+-- 不会读取、删除或修改 artists 中的现有数据。
 -- API 使用 service_role key 访问这些表；RLS 保持开启且不添加 anon 策略。
 
 create extension if not exists pgcrypto;
