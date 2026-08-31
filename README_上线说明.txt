@@ -42,7 +42,7 @@
 1. 在 Supabase SQL Editor 执行 `seed/email-auth.sql`。这一步只创建
    `site_users` 和 `site_sessions` 两张认证表，不会修改现有画家数据。
 2. 部署包含 `api/auth-register.js`、`api/auth-login.js`、`api/auth-session.js`
-   （另有兼容别名 `api/auth-me.js`）和 `api/auth-logout.js` 的版本后，前台即可使用
+   和 `api/auth-logout.js` 的版本后，前台即可使用
    邮箱和密码注册、登录、退出。
 3. 会话使用 HttpOnly、SameSite=Lax Cookie；数据库只保存 scrypt 密码摘要和
    SHA-256 会话摘要。不要把 `SUPABASE_SERVICE_ROLE_KEY` 放到前端。
@@ -80,7 +80,7 @@ Instagram 的 robots.txt 不允许通用自动抓取时，脚本会记录 skippe
 
 - POST /api/auth-register：email、password、displayName（可选）、remember（可选）
 - POST /api/auth-login：email、password、remember（可选）
-- GET /api/auth-session（或兼容别名 /api/auth-me）：检查当前登录状态
+- GET /api/auth-session：检查当前登录状态
 - POST /api/auth-logout：退出登录
 
 密码使用 Node.js 内置 crypto.scrypt 哈希。默认长期登录为 30 天，可在 Vercel 添加 AUTH_SESSION_DAYS（1-365）修改；未勾选“记住登录”时使用浏览器会话 Cookie，服务端最长保留 1 天。后台管理员密码仍由 ADMIN_PASSWORD 单独控制。
