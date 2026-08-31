@@ -356,21 +356,15 @@ h4,
   backdrop-filter: none;
 }
 
-.login-brand-mark,
-.brand-mark {
-  display: grid;
-  place-items: center;
-  border: 1px solid currentColor;
-  font-family: "Yu Mincho", "Noto Serif CJK JP", serif;
-  font-weight: 500;
+.brand-logo {
+  display: block;
+  object-fit: contain;
 }
 
-.login-brand-mark {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 30px;
-  color: var(--ink);
-  font-size: 24px;
+.login-brand-logo {
+  width: 96px;
+  height: auto;
+  margin-bottom: 20px;
 }
 
 .login-card .eyebrow {
@@ -527,12 +521,10 @@ h4,
   margin-bottom: 30px;
 }
 
-.brand-mark {
-  width: 44px;
-  height: 44px;
+.sidebar-brand-logo {
+  width: 70px;
+  height: auto;
   margin-bottom: 8px;
-  color: #f4efe8;
-  font-size: 22px;
 }
 
 .brand .brand-kicker {
@@ -1119,16 +1111,16 @@ h4,
   }
 
   .brand {
-    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-columns: 48px minmax(0, 1fr);
     column-gap: 12px;
     row-gap: 2px;
     align-items: center;
     margin: 0;
   }
 
-  .brand-mark {
-    width: 42px;
-    height: 42px;
+  .sidebar-brand-logo {
+    width: 48px;
+    height: auto;
     grid-row: 1 / 3;
     margin: 0;
   }
@@ -1327,8 +1319,9 @@ h4,
     padding: 20px 0 32px;
   }
 
-  .login-brand-mark {
-    margin-bottom: 14px;
+  .login-brand-logo {
+    width: 72px;
+    margin-bottom: 10px;
   }
 
   .auth-mode-tabs {
