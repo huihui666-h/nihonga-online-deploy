@@ -51,6 +51,7 @@ jobs:
           python scripts/news_crawler.py \
             --process-ai \
             --write \
+            --refresh \
             --out /tmp/news-candidates.json \
             --state-file /tmp/news-crawler-state.json \
             --log-file /tmp/news-crawler.log

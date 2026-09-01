@@ -681,7 +681,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         if (
             item["source_url"] in final_urls
             or final_fingerprint in final_fingerprints
-            or (final_fingerprint in existing_fingerprints and not item.get("_from_pending"))
+            or (final_fingerprint in existing_fingerprints and not item.get("_from_pending") and not args.refresh)
         ):
             duplicate_records += 1
             continue
