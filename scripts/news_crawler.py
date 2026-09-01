@@ -337,6 +337,7 @@ def _report_item(item: Mapping[str, Any]) -> dict[str, Any]:
     return _public_item(item) | {
         "raw_excerpt": normalize_text(item.get("raw_excerpt"), 1400),
         "artist_ids": list(item.get("artist_ids", [])),
+        "ai_error": normalize_text(item.get("ai_error"), 300),
     }
 
 
