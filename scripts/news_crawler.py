@@ -644,6 +644,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     for item in records:
         item.setdefault("_ai_processed", False)
         if ai_processor and not item["_ai_processed"] and not ai_halted:
+            source = source_by_key.get(item.get("source_key"))
+            trusted_source = bool(
+                source
+                and source.trusted_for_auto_publish
+                and source_url_allowed(item.get("source_url", ""), source)
+            )
             try:
                 enriched = process_news_with_ai(item, processor=ai_processor)
                 if enriched is None:
@@ -655,16 +661,18 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                         source_key = "artist_names" if key == "raw_artist_names" else key
                         if source_key in enriched and enriched[source_key] not in (None, "", []):
                             item[key] = enriched[source_key]
-                    source = source_by_key.get(item.get("source_key"))
-                    trusted_source = bool(
-                        source
-                        and source.trusted_for_auto_publish
-                        and source_url_allowed(item.get("source_url", ""), source)
-                    )
                     item["status"] = determine_status(enriched, item, trusted_source=trusted_source, now=today)
             except Exception as error:
                 ai_stats["errors"] += 1
                 item["ai_error"] = str(error)[:300]
+                # GitHub-hosted runners can occasionally be unable to reach
+                # the configured provider. Keep first-party announcements
+                # visible with their bounded source excerpt; untrusted items
+                # remain candidates until AI review succeeds.
+                if trusted_source and item.get("raw_excerpt"):
+                    item["summary"] = normalize_text(item.get("raw_excerpt"), 600)
+                    item["relevance_score"] = 0.9
+                    item["status"] = "published"
                 message = str(error).casefold()
                 if any(term in message for term in ("http error 401", "http error 403", "http error 429", "quota", "rate limit")):
                     ai_halted = True
