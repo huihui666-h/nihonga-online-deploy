@@ -104,3 +104,10 @@ seed/
 
 scripts/
   Instagram 候选收集、去重、导入和相关测试。
+
+九、每日新闻自动抓取
+
+项目内置 `.github/workflows/news-daily.yml`，每天东京时间 02:15 自动执行新闻抓取、AI 分类和 Supabase 写入；也可在 GitHub Actions 页面手动运行。
+将仓库连接到 GitHub 后，在仓库 Settings -> Secrets and variables -> Actions 添加以下 secrets：
+  SUPABASE_URL、SUPABASE_SERVICE_ROLE_KEY、OPENAI_API_KEY、OPENAI_BASE_URL、OPENAI_MODEL、OPENAI_WIRE_API。
+其中 OPENAI_BASE_URL、OPENAI_MODEL、OPENAI_WIRE_API 分别填写中转站地址、模型名和 `responses`。密钥只放在 GitHub Secrets，不写入代码。

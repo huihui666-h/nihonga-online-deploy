@@ -1,0 +1,2 @@
+# The crawler uses Python's standard library. This file keeps the workflow
+# extensible if a source parser later needs a third-party dependency.
