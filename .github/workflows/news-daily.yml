@@ -37,17 +37,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           # The Python processor uses Chat Completions; accept a provider root
           # secret (for example https://cn-api.ooapi.cc) and add the path.
-          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          OPENAI_BASE_URL: https://cn-api.ooapi.cc/v1/responses
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
           OPENAI_WIRE_API: ${{ secrets.OPENAI_WIRE_API }}
         run: |
-          base="$OPENAI_BASE_URL"
-          case "$base" in
-            */chat/completions) ;;
-            */v1) base="${base%/}/chat/completions" ;;
-            *) base="${base%/}/v1/chat/completions" ;;
-          esac
-          echo "OPENAI_BASE_URL=$base" >> "$GITHUB_ENV"
           python scripts/news_crawler.py \
             --process-ai \
             --write \
