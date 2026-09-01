@@ -26,7 +26,9 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+          # The Python processor uses Chat Completions; accept a provider root
+          # secret (for example https://cn-api.ooapi.cc) and add the path.
+          OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}/v1/chat/completions
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
           OPENAI_WIRE_API: ${{ secrets.OPENAI_WIRE_API }}
         run: >-
