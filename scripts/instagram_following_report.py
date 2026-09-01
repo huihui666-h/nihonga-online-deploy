@@ -30,6 +30,7 @@ try:
         clean_text,
         normalize_handle,
         sanitize_bio,
+        write_json_atomic,
     )
 except ImportError:  # Also support ``python -m scripts.instagram_following_report``.
     from scripts.instagram_import import (  # type: ignore[no-redef]
@@ -38,6 +39,7 @@ except ImportError:  # Also support ``python -m scripts.instagram_following_repo
         clean_text,
         normalize_handle,
         sanitize_bio,
+        write_json_atomic,
     )
 
 
@@ -84,14 +86,6 @@ IDENTITY_INSTITUTION_RULES = (
     ("展览/媒体", re.compile(r"(?:作品展|卒業展|修了展|展覧会|triennale|magazine|月刊|新聞)", re.IGNORECASE)),
 )
 
-# These terms are unambiguous even when they appear only in a saved bio.
-HARD_BIO_INSTITUTION_RULES = (
-    ("研究室/部门", re.compile(r"(?:研究室|department)", re.IGNORECASE)),
-    ("美术馆/画廊", re.compile(r"(?:美術館|美术馆|museum|画廊|gallery)", re.IGNORECASE)),
-    ("材料商", re.compile(r"(?:art\s+supply|株式会社|\(株\))", re.IGNORECASE)),
-    ("展览/媒体", re.compile(r"(?:作品展|卒業展|修了展|展覧会|triennale|magazine|月刊|新聞)", re.IGNORECASE)),
-)
-
 ASPIRANT_RULES = (
     ("备考/志望", re.compile(r"(?:志望|受験|受验|备考|備考|予備校|受験生)", re.IGNORECASE)),
 )
@@ -125,7 +119,10 @@ def _iter_following_rows(payload: Any) -> Iterable[dict[str, Any]]:
     if _first_handle(payload):
         yield payload
 
-    for key in ("following", "relationships_following"):
+    # Browser discovery snapshots use ``profiles`` while Instagram account
+    # exports use ``following``. Both are candidate sources and should share
+    # the same normalization and duplicate filters.
+    for key in ("following", "relationships_following", "profiles", "candidates"):
         value = payload.get(key)
         if value is not None:
             yield from _iter_following_rows(value)
@@ -147,7 +144,7 @@ def load_following(path: str | Path) -> list[dict[str, str]]:
             rows = (
                 {
                     "handle": row.get("handle") or row.get("username") or row.get("instagram") or row.get("url") or "",
-                    "name": row.get("display") or row.get("name") or row.get("title") or "",
+                    "name": row.get("display") or row.get("displayName") or row.get("name") or row.get("title") or "",
                 }
                 for row in csv.DictReader(handle)
             )
@@ -168,7 +165,7 @@ def load_following(path: str | Path) -> list[dict[str, str]]:
         seen.add(handle)
         result.append({
             "handle": handle,
-            "name": clean_text(row.get("display") or row.get("title") or row.get("name")),
+            "name": clean_text(row.get("display") or row.get("displayName") or row.get("title") or row.get("name")),
         })
     return result
 
@@ -214,7 +211,7 @@ def load_metadata(paths: Iterable[str | Path]) -> dict[str, dict[str, Any]]:
             if not handle:
                 continue
             target = result.setdefault(handle, {})
-            for key in ("name", "display", "publicBio", "bio", "note", "reason", "keywordHits"):
+            for key in ("name", "display", "displayName", "publicBio", "bio", "note", "reason", "keywordHits", "followingStatus"):
                 value = row.get(key)
                 if value not in (None, "", []):
                     target[key] = value
@@ -242,7 +239,7 @@ def _rule_hits(text: str, rules: Iterable[tuple[str, re.Pattern[str], int]]) -> 
 
 def classify_profile(profile: dict[str, Any]) -> dict[str, Any]:
     handle = normalize_handle(profile.get("handle"))
-    name = clean_text(profile.get("name") or profile.get("display"))
+    name = clean_text(profile.get("name") or profile.get("display") or profile.get("displayName"))
     bio = _bio_from_metadata(profile)
     searchable = " ".join(part for part in (handle, name, bio) if part)
 
@@ -255,23 +252,15 @@ def classify_profile(profile: dict[str, Any]) -> dict[str, Any]:
     identity_institution_hits = [
         label for label, pattern in IDENTITY_INSTITUTION_RULES if pattern.search(identity_text)
     ]
-    hard_bio_hits = [
-        label for label, pattern in HARD_BIO_INSTITUTION_RULES if pattern.search(bio)
-    ]
-
     # A handle containing "nihonga" is useful discovery evidence, but is not
     # enough by itself to call an account an artist.
     handle_signal = 3 if "nihonga" in handle else 0
     score = strong_score + nihonga_score + artist_score + handle_signal
     evidence = list(dict.fromkeys(strong_hits + nihonga_hits + artist_hits + (["handle:nihonga"] if handle_signal else [])))
 
-    # A university/material mention in a painter's bio is evidence, not an
-    # exclusion. Identity-level organization terms still take precedence;
-    # hard bio terms exclude only when there is no clear artist signal.
-    institution_hits = identity_institution_hits or (
-        hard_bio_hits if not (strong_hits and artist_hits) else []
-    )
-    if institution_hits:
+    # Bio text like "日本画研究室助手" can describe an individual artist's
+    # role. Only signals in the account identity itself identify organizations.
+    if identity_institution_hits:
         bucket = "excluded"
         reason = "机构/学校/画廊/材料商/展览账号"
     elif aspirant_hits:
@@ -293,7 +282,7 @@ def classify_profile(profile: dict[str, Any]) -> dict[str, Any]:
         bucket = "unclassified"
         reason = "现有公开资料未命中日本画证据"
 
-    return {
+    result = {
         "handle": f"@{handle}",
         "name": name or f"@{handle}",
         "instagram": canonical_profile_url(handle),
@@ -303,6 +292,9 @@ def classify_profile(profile: dict[str, Any]) -> dict[str, Any]:
         "evidence": evidence,
         "reason": reason,
     }
+    if profile.get("followingStatus"):
+        result["followingStatus"] = clean_text(profile.get("followingStatus"))
+    return result
 
 
 def build_report(
@@ -310,6 +302,8 @@ def build_report(
     existing_handles: set[str],
     existing_names: set[str],
     metadata: dict[str, dict[str, Any]],
+    *,
+    source: str = "local-instagram-following-audit",
 ) -> dict[str, Any]:
     buckets: dict[str, list[dict[str, Any]]] = {
         "highConfidence": [],
@@ -325,7 +319,7 @@ def build_report(
         handle = normalize_handle(row.get("handle"))
         merged: dict[str, Any] = dict(row)
         merged.update(metadata.get(handle, {}))
-        name = clean_text(merged.get("name") or merged.get("display"))
+        name = clean_text(merged.get("name") or merged.get("display") or merged.get("displayName"))
         if handle in existing_handles:
             duplicates.append({"handle": f"@{handle}", "name": name, "reason": "existing-handle"})
             continue
@@ -340,7 +334,7 @@ def build_report(
         values.sort(key=lambda item: (-int(item.get("score", 0)), item.get("handle", "")))
 
     return {
-        "source": "local-instagram-following-audit",
+        "source": clean_text(source) or "local-instagram-candidate-audit",
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "writeMode": "local-review-only; no network and no website mutations",
         "summary": {
@@ -363,6 +357,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--existing-file", required=True, help="Local /api/artists JSON snapshot used for duplicate filtering.")
     parser.add_argument("--metadata-file", action="append", default=[], help="Optional local JSON containing saved public bios. Repeatable.")
     parser.add_argument("--out", default="imports/instagram-following-audit.json", help="Local review report path.")
+    parser.add_argument("--source-label", default="local-instagram-following-audit", help="Label for the local candidate source in the output report.")
     return parser
 
 
@@ -371,10 +366,15 @@ def main(argv: list[str] | None = None) -> int:
     following = load_following(args.following_file)
     existing_handles, existing_names = load_existing(args.existing_file)
     metadata = load_metadata(args.metadata_file)
-    report = build_report(following, existing_handles, existing_names, metadata)
+    report = build_report(
+        following,
+        existing_handles,
+        existing_names,
+        metadata,
+        source=args.source_label,
+    )
     output = Path(args.out)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_json_atomic(output, report)
     summary = report["summary"]
     print(f"已生成本地审核报告: {output}")
     print(

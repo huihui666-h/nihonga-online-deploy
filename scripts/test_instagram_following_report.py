@@ -37,6 +37,18 @@ class InstagramFollowingReportTests(unittest.TestCase):
             rows = report.load_following(path)
         self.assertEqual([row["handle"] for row in rows], ["first_artist", "second_artist"])
 
+    def test_load_following_supports_discovery_profile_snapshot(self):
+        payload = {
+            "profiles": [
+                {"handle": "@discovered_artist", "name": "发现画家"},
+            ]
+        }
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "discovery.json"
+            path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+            rows = report.load_following(path)
+        self.assertEqual(rows, [{"handle": "discovered_artist", "name": "发现画家"}])
+
     def test_classifier_separates_artist_institution_and_aspirant(self):
         artist = report.classify_profile({
             "handle": "hana_art",
@@ -85,6 +97,19 @@ class InstagramFollowingReportTests(unittest.TestCase):
         self.assertEqual(result["summary"]["duplicates"], 1)
         self.assertEqual(result["summary"]["highConfidence"], 1)
         self.assertEqual(result["writeMode"], "local-review-only; no network and no website mutations")
+
+    def test_build_report_preserves_candidate_source_label(self):
+        result = report.build_report([], set(), set(), {}, source="instagram-discover-people")
+        self.assertEqual(result["source"], "instagram-discover-people")
+
+    def test_discovery_following_status_is_preserved(self):
+        profile = report.classify_profile({
+            "handle": "discovered_artist",
+            "name": "发现画家",
+            "publicBio": "日本画家",
+            "followingStatus": "not-following-at-observation",
+        })
+        self.assertEqual(profile["followingStatus"], "not-following-at-observation")
 
 
 if __name__ == "__main__":

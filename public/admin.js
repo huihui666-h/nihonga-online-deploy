@@ -8,6 +8,7 @@ let users = [];
 let usersLoaded = false;
 let usersLoading = false;
 let usersAtLimit = false;
+let passwordResetUser = null;
 const expandedSubmissionIds = new Set();
 
 const els = {
@@ -37,7 +38,17 @@ const els = {
   refreshUsersButton: document.querySelector("#refreshUsersButton"),
   userTotalCount: document.querySelector("#userTotalCount"),
   userActiveCount: document.querySelector("#userActiveCount"),
-  userDisabledCount: document.querySelector("#userDisabledCount")
+  userDisabledCount: document.querySelector("#userDisabledCount"),
+  passwordResetDialog: document.querySelector("#passwordResetDialog"),
+  passwordResetForm: document.querySelector("#passwordResetForm"),
+  passwordResetUser: document.querySelector("#passwordResetUser"),
+  newUserPasswordInput: document.querySelector("#newUserPasswordInput"),
+  showUserPasswordInput: document.querySelector("#showUserPasswordInput"),
+  generateUserPasswordButton: document.querySelector("#generateUserPasswordButton"),
+  submitPasswordResetButton: document.querySelector("#submitPasswordResetButton"),
+  passwordResetMessage: document.querySelector("#passwordResetMessage"),
+  closePasswordResetButton: document.querySelector("#closePasswordResetButton"),
+  cancelPasswordResetButton: document.querySelector("#cancelPasswordResetButton")
 };
 
 function setMessage(message, isError = false) {
@@ -236,16 +247,72 @@ function renderUsers() {
       <div role="cell"><span class="user-status ${isActive ? "is-active" : "is-disabled"}">${isActive ? "正常" : "已停用"}</span></div>
       <div class="user-date" role="cell"><span>注册时间</span><time>${escapeHtml(formatAdminDate(user.createdAt, "未知"))}</time></div>
       <div class="user-date" role="cell"><span>最后登录</span><time>${escapeHtml(formatAdminDate(user.lastLoginAt, "暂无记录"))}</time></div>
-      <div class="user-action" role="cell"><button class="${isActive ? "danger" : "secondary"}" type="button">${isActive ? "停用账户" : "重新启用"}</button></div>
+      <div class="user-action" role="cell"><button data-user-action="status" class="${isActive ? "danger" : "secondary"}" type="button">${isActive ? "停用账户" : "重新启用"}</button><button data-user-action="password" class="secondary" type="button">重设密码</button></div>
     `;
 
-    const actionButton = row.querySelector(".user-action button");
+    const actionButton = row.querySelector('[data-user-action="status"]');
     actionButton.setAttribute("aria-label", `${isActive ? "停用" : "启用"} ${user.email || "此用户"}`);
     actionButton.addEventListener("click", () => {
       changeUserStatus(user, nextStatus, actionButton).catch((error) => setMessage(error.message, true));
     });
+    row.querySelector('[data-user-action="password"]').addEventListener("click", () => openPasswordReset(user));
     els.userList.append(row);
   });
+}
+
+function openPasswordReset(user) {
+  passwordResetUser = user;
+  els.passwordResetUser.textContent = `用户：${user.email || user.displayName || user.id}`;
+  els.newUserPasswordInput.value = "";
+  els.newUserPasswordInput.type = "password";
+  els.showUserPasswordInput.checked = false;
+  els.passwordResetMessage.textContent = "";
+  els.passwordResetMessage.classList.remove("is-error");
+  els.passwordResetDialog.showModal();
+  els.newUserPasswordInput.focus();
+}
+
+function closePasswordReset() {
+  els.passwordResetDialog.close();
+  passwordResetUser = null;
+  els.newUserPasswordInput.value = "";
+}
+
+function generateUserPassword() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+  const values = new Uint32Array(16);
+  crypto.getRandomValues(values);
+  els.newUserPasswordInput.value = Array.from(values, (value) => alphabet[value % alphabet.length]).join("");
+  els.newUserPasswordInput.type = "text";
+  els.showUserPasswordInput.checked = true;
+  els.newUserPasswordInput.focus();
+  els.newUserPasswordInput.select();
+}
+
+async function resetUserPassword() {
+  if (!passwordResetUser) return;
+  const newPassword = els.newUserPasswordInput.value;
+  if (newPassword.length < 8 || newPassword.length > 128) {
+    els.passwordResetMessage.textContent = "新密码长度需要为 8 至 128 个字符。";
+    els.passwordResetMessage.classList.add("is-error");
+    return;
+  }
+  els.submitPasswordResetButton.disabled = true;
+  els.passwordResetMessage.classList.remove("is-error");
+  els.passwordResetMessage.textContent = "正在重设密码...";
+  try {
+    await api(`/api/admin-artists?resource=users&id=${encodeURIComponent(passwordResetUser.id)}`, {
+      method: "PATCH",
+      body: JSON.stringify({ newPassword })
+    });
+    els.passwordResetMessage.textContent = "密码已重设，旧会话已清除。请将新密码安全地告知用户。";
+    setMessage(`已重设 ${passwordResetUser.email || "该用户"} 的密码，旧会话已清除。`);
+  } catch (error) {
+    els.passwordResetMessage.textContent = error.message;
+    els.passwordResetMessage.classList.add("is-error");
+  } finally {
+    els.submitPasswordResetButton.disabled = false;
+  }
 }
 
 function formatAdminDate(value, fallback) {
@@ -472,6 +539,16 @@ els.userSearchInput.addEventListener("input", renderUsers);
 els.userStatusFilter.addEventListener("change", renderUsers);
 els.refreshUsersButton.addEventListener("click", () => {
   loadUsers().catch(() => {});
+});
+els.passwordResetForm.addEventListener("submit", (event) => { event.preventDefault(); resetUserPassword(); });
+els.generateUserPasswordButton.addEventListener("click", generateUserPassword);
+els.showUserPasswordInput.addEventListener("change", () => { els.newUserPasswordInput.type = els.showUserPasswordInput.checked ? "text" : "password"; });
+els.closePasswordResetButton.addEventListener("click", closePasswordReset);
+els.cancelPasswordResetButton.addEventListener("click", closePasswordReset);
+els.passwordResetDialog.addEventListener("click", (event) => {
+  if (event.target !== els.passwordResetDialog) return;
+  const box = els.passwordResetDialog.getBoundingClientRect();
+  if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) closePasswordReset();
 });
 
 els.artistForm.addEventListener("submit", async (event) => {

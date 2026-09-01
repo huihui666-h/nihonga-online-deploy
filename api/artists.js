@@ -1,10 +1,22 @@
 const { assertConfig, sendJson, setCors, supabaseFetch } = require("./_supabase");
+const { handleNews } = require("./_news");
+const { handleNewsAi } = require("./_news-ai");
 
 module.exports = async function handler(req, res) {
   setCors(res);
   if (req.method === "OPTIONS") {
     res.statusCode = 204;
     res.end();
+    return;
+  }
+
+  const url = new URL(req.url || "/api/artists", "https://local.invalid");
+  if (url.searchParams.get("resource") === "news") {
+    await handleNews(req, res, url);
+    return;
+  }
+  if (url.searchParams.get("resource") === "news-ai") {
+    await handleNewsAi(req, res, url);
     return;
   }
 
@@ -29,7 +41,14 @@ module.exports = async function handler(req, res) {
       school: row.school || "",
       styles: Array.isArray(row.styles) ? row.styles : [],
       note: row.note || "",
-      updatedAt: row.updated_at || row.created_at || ""
+      updatedAt: row.updated_at || row.created_at || "",
+      // Optional presentation metadata; no migration or changes to old fields.
+      createdAt: row.created_at || undefined,
+      addedAt: row.added_at || undefined,
+      featured: typeof row.featured === "boolean" ? row.featured : undefined,
+      huiNote: row.hui_note || row.huiNote || undefined,
+      imageUrl: row.image_url || row.imageUrl || undefined,
+      imageAlt: row.image_alt || row.imageAlt || undefined
     }));
 
     sendJson(res, 200, { ok: true, artists });

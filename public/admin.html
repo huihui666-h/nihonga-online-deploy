@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>后台管理 - 日本画画家整合</title>
-    <link rel="stylesheet" href="styles.css?v=5" />
+    <link rel="stylesheet" href="styles.css?v=6" />
   </head>
   <body>
     <main class="admin-shell">
@@ -106,6 +106,7 @@
               <div>
                 <h2>注册用户</h2>
                 <p class="helper-message">查看邮箱账户及登录时间；停用账户会立即清除其登录会话。</p>
+                <p class="helper-message password-policy-note">密码以不可逆摘要保存，后台不会显示用户原密码。用户忘记密码时，请联系管理员处理账户重置。</p>
               </div>
               <button id="refreshUsersButton" class="secondary" type="button">刷新</button>
             </div>
@@ -147,6 +148,18 @@
       </section>
     </main>
 
-    <script src="admin.js?v=2"></script>
+    <dialog id="passwordResetDialog" class="admin-dialog" aria-labelledby="passwordResetTitle">
+      <form id="passwordResetForm">
+        <div class="admin-dialog-header"><div><p class="eyebrow">Account Security</p><h2 id="passwordResetTitle">重设用户密码</h2></div><button id="closePasswordResetButton" class="dialog-icon-button" type="button" aria-label="关闭">×</button></div>
+        <p id="passwordResetUser" class="helper-message"></p>
+        <label><span>新密码</span><input id="newUserPasswordInput" type="password" minlength="8" maxlength="128" autocomplete="new-password" required /></label>
+        <label class="check-row"><input id="showUserPasswordInput" type="checkbox" /><span>显示新密码</span></label>
+        <div class="button-row"><button id="generateUserPasswordButton" class="secondary" type="button">生成新密码</button><button id="submitPasswordResetButton" type="submit">确认重设</button><button id="cancelPasswordResetButton" class="secondary" type="button">取消</button></div>
+        <p id="passwordResetMessage" class="message" role="status" aria-live="polite"></p>
+        <p class="helper-message">原密码不会显示。重设成功后，用户的旧登录会话会立即失效。</p>
+      </form>
+    </dialog>
+
+    <script src="admin.js?v=3"></script>
   </body>
 </html>

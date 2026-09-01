@@ -8,7 +8,43 @@ const {
   setCors,
   supabaseFetch
 } = require("./_supabase");
-const { publicUser, requireSameOrigin } = require("./_auth");
+const { hashPassword, publicUser, requireSameOrigin, validatePassword } = require("./_auth");
+
+// Serverless instances do not share memory, so this only bridges immediate
+// same-instance retries.  The canonical Instagram duplicate check remains the
+// durable idempotency guard across instances and deployments.
+const recentCrawlerWrites = new Map();
+const IDEMPOTENCY_TTL_MS = 10 * 60 * 1000;
+const MAX_RECENT_CRAWLER_WRITES = 5000;
+
+function crawlerIdempotencyKey(req) {
+  const value = String(req.headers["idempotency-key"] || req.headers["x-idempotency-key"] || "").trim();
+  return /^[A-Za-z0-9._:-]{8,128}$/.test(value) ? value : "";
+}
+
+function readRecentCrawlerWrite(key) {
+  if (!key) return null;
+  const record = recentCrawlerWrites.get(key);
+  if (!record || record.expiresAt < Date.now()) {
+    recentCrawlerWrites.delete(key);
+    return null;
+  }
+  return record;
+}
+
+function rememberCrawlerWrite(key, status, response) {
+  if (!key) return;
+  const now = Date.now();
+  for (const [oldKey, record] of recentCrawlerWrites) {
+    if (record.expiresAt < now) recentCrawlerWrites.delete(oldKey);
+  }
+  while (recentCrawlerWrites.size >= MAX_RECENT_CRAWLER_WRITES) {
+    const oldest = recentCrawlerWrites.keys().next().value;
+    if (oldest === undefined) break;
+    recentCrawlerWrites.delete(oldest);
+  }
+  recentCrawlerWrites.set(key, { expiresAt: now + IDEMPOTENCY_TTL_MS, status, response });
+}
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -39,18 +75,28 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === "POST") {
+      if (!requireSameOrigin(req, res)) return;
+      const idempotencyKey = crawlerIdempotencyKey(req);
+      const replay = readRecentCrawlerWrite(idempotencyKey);
+      if (replay) {
+        sendJson(res, replay.status, { ...replay.response, idempotentReplay: true });
+        return;
+      }
       const artist = normalizeArtist(await readBody(req));
-      if (!artist.name || !artist.handle) {
-        sendJson(res, 400, { ok: false, message: "画家名称和 IG handle 必填。" });
+      const hasPublicIdentity = Boolean(artist.handle || (artist.source_page && artist.link_type !== "instagram"));
+      if (!artist.name || !hasPublicIdentity) {
+        sendJson(res, 400, { ok: false, message: "画家名称和 IG handle 或公开来源页必填。" });
         return;
       }
       const duplicate = await findArtistDuplicate(artist);
       if (duplicate) {
-        sendJson(res, 409, {
+        const response = {
           ok: false,
-          message: `Instagram 账号已存在：${duplicate.handle || duplicate.instagram || "该账号"}。`,
+          message: `画家记录已存在：${duplicate.handle || duplicate.instagram || duplicate.name || "该账号"}。`,
           duplicate
-        });
+        };
+        rememberCrawlerWrite(idempotencyKey, 409, response);
+        sendJson(res, 409, response);
         return;
       }
       const rows = await supabaseFetch("artists?select=*", {
@@ -58,26 +104,30 @@ module.exports = async function handler(req, res) {
         headers: { prefer: "return=representation" },
         body: JSON.stringify(artist)
       });
-      sendJson(res, 200, { ok: true, artist: rows[0] });
+      const response = { ok: true, artist: rows[0] };
+      rememberCrawlerWrite(idempotencyKey, 200, response);
+      sendJson(res, 200, response);
       return;
     }
 
     if (req.method === "PATCH") {
+      if (!requireSameOrigin(req, res)) return;
       const id = new URL(req.url, "http://localhost").searchParams.get("id");
       if (!id) {
         sendJson(res, 400, { ok: false, message: "缺少画家 id。" });
         return;
       }
       const artist = normalizeArtist(await readBody(req));
-      if (!artist.name || !artist.handle) {
-        sendJson(res, 400, { ok: false, message: "画家名称和 IG handle 必填。" });
+      const hasPublicIdentity = Boolean(artist.handle || (artist.source_page && artist.link_type !== "instagram"));
+      if (!artist.name || !hasPublicIdentity) {
+        sendJson(res, 400, { ok: false, message: "画家名称和 IG handle 或公开来源页必填。" });
         return;
       }
       const duplicate = await findArtistDuplicate(artist, id);
       if (duplicate) {
         sendJson(res, 409, {
           ok: false,
-          message: `Instagram 账号已存在：${duplicate.handle || duplicate.instagram || "该账号"}。`,
+          message: `画家记录已存在：${duplicate.handle || duplicate.instagram || duplicate.name || "该账号"}。`,
           duplicate
         });
         return;
@@ -92,6 +142,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === "DELETE") {
+      if (!requireSameOrigin(req, res)) return;
       const id = new URL(req.url, "http://localhost").searchParams.get("id");
       if (!id) {
         sendJson(res, 400, { ok: false, message: "缺少画家 id。" });
@@ -136,10 +187,39 @@ async function handleUsers(req, res, url) {
     }
 
     const body = await readBody(req);
-    if (!body || Array.isArray(body) || typeof body !== "object" || Object.keys(body).some((key) => key !== "status")) {
-      sendJson(res, 400, { ok: false, message: "注册用户只允许修改账户状态。" });
+    const allowedKeys = new Set(["status", "newPassword"]);
+    if (!body || Array.isArray(body) || typeof body !== "object" || Object.keys(body).some((key) => !allowedKeys.has(key))) {
+      sendJson(res, 400, { ok: false, message: "注册用户只允许修改账户状态或重设密码。" });
       return;
     }
+    const hasPasswordReset = Object.prototype.hasOwnProperty.call(body, "newPassword");
+    const hasStatusChange = Object.prototype.hasOwnProperty.call(body, "status");
+    if (hasPasswordReset === hasStatusChange) {
+      sendJson(res, 400, { ok: false, message: "请只提交账户状态或新密码。" });
+      return;
+    }
+
+    if (hasPasswordReset) {
+      const newPassword = String(body.newPassword || "");
+      const passwordError = validatePassword(newPassword);
+      if (passwordError) {
+        sendJson(res, 400, { ok: false, message: passwordError });
+        return;
+      }
+      const rows = await supabaseFetch(`site_users?id=eq.${encodeURIComponent(id)}&select=${select}`, {
+        method: "PATCH",
+        headers: { prefer: "return=representation" },
+        body: JSON.stringify({ password_hash: await hashPassword(newPassword), updated_at: new Date().toISOString() })
+      });
+      if (!Array.isArray(rows) || !rows[0]) {
+        sendJson(res, 404, { ok: false, message: "注册用户不存在。" });
+        return;
+      }
+      await supabaseFetch(`site_sessions?user_id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+      sendJson(res, 200, { ok: true, user: publicUser(rows[0]), passwordReset: true });
+      return;
+    }
+
     const status = String(body.status || "").trim();
     if (!new Set(["active", "disabled"]).has(status)) {
       sendJson(res, 400, { ok: false, message: "用户状态只支持 active 或 disabled。" });

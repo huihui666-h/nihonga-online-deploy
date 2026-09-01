@@ -14,6 +14,31 @@
   box-sizing: border-box;
 }
 
+html {
+  background: #f7f6f0;
+  scroll-behavior: smooth;
+}
+
+body {
+  animation: page-enter 150ms ease-out both;
+}
+
+body.page-leaving {
+  opacity: 0.98;
+  transition: opacity 240ms ease-in;
+}
+
+@keyframes page-enter {
+  from { opacity: 0.98; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  body { animation: none; }
+  body.page-leaving { opacity: 1; transition: none; }
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -1062,7 +1087,7 @@ button:disabled {
 .user-table-head,
 .user-row {
   display: grid;
-  grid-template-columns: minmax(210px, 1.35fr) 92px minmax(145px, 0.82fr) minmax(145px, 0.82fr) 118px;
+  grid-template-columns: minmax(210px, 1.35fr) 92px minmax(145px, 0.82fr) minmax(145px, 0.82fr) 150px;
   gap: 14px;
   align-items: center;
 }
@@ -1137,12 +1162,26 @@ button:disabled {
   color: var(--red);
 }
 
+.user-action {
+  display: grid;
+  gap: 7px;
+}
+
 .user-action button {
   width: 100%;
   min-height: 36px;
   padding: 0 10px;
   font-size: 12px;
 }
+
+.password-policy-note { max-width: 760px; }
+.admin-dialog { width: min(540px, calc(100% - 32px)); padding: 24px; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+.admin-dialog::backdrop { background: rgba(20, 24, 20, .52); }
+.admin-dialog form { display: grid; gap: 16px; }
+.admin-dialog h2 { margin: 4px 0 0; font-size: 24px; }
+.admin-dialog-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; }
+.dialog-icon-button { width: 42px; min-height: 42px; padding: 0; flex: 0 0 auto; color: var(--ink); background: transparent; border-color: var(--line); font-size: 24px; font-weight: 400; }
+.admin-dialog .check-row input { width: 18px; min-height: 18px; }
 
 .user-empty {
   margin: 0;

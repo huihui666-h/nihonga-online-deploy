@@ -42,7 +42,20 @@ global.fetch = async function mockSupabaseFetch(input, options = {}) {
     return true;
   });
 
-  if (method === "GET") return jsonResponse(200, filtered);
+  if (method === "GET") {
+    const offset = Math.max(0, Number.parseInt(url.searchParams.get("offset") || "0", 10) || 0);
+    const limitValue = Number.parseInt(url.searchParams.get("limit") || "", 10);
+    const page = Number.isInteger(limitValue) && limitValue >= 0
+      ? filtered.slice(offset, offset + limitValue)
+      : filtered.slice(offset);
+    return jsonResponse(200, page);
+  }
+  if (method === "POST") {
+    const created = { ...payload };
+    if (!created.id) created.id = `${table}-${rows.length + 1}`;
+    rows.push(created);
+    return jsonResponse(201, [created]);
+  }
   if (method === "PATCH") {
     filtered.forEach((row) => Object.assign(row, payload));
     return jsonResponse(200, filtered);
@@ -80,6 +93,12 @@ function request(method, url, body, password = process.env.ADMIN_PASSWORD, origi
   return req;
 }
 
+function crawlerRequest(method, url, body, idempotencyKey) {
+  const req = request(method, url, body);
+  req.headers["idempotency-key"] = idempotencyKey;
+  return req;
+}
+
 function response() {
   return {
     statusCode: 200,
@@ -94,6 +113,14 @@ function response() {
 async function call(method, url, body, password, origin) {
   const res = response();
   await adminArtists(request(method, url, body, password, origin), res);
+  return res;
+}
+
+async function callCrawler(method, url, body, idempotencyKey, origin) {
+  const res = response();
+  const req = crawlerRequest(method, url, body, idempotencyKey);
+  if (origin !== undefined) req.headers.origin = origin;
+  await adminArtists(req, res);
   return res;
 }
 
@@ -113,6 +140,69 @@ async function main() {
   const artistList = await call("GET", "/api/admin-artists");
   assert.strictEqual(artistList.statusCode, 200);
   assert.strictEqual(artistList.json().artists[0].name, "Test Artist");
+
+  const crawlerArtist = { name: "Crawler Artist", handle: "https://instagram.com/Crawler_Artist/?utm_source=seed" };
+  // The first lookup plus insert should only occur once even when the crawler
+  // retries the exact POST on a warm serverless instance.
+  const beforeCrawler = calls.length;
+  const firstCrawlerWrite = await callCrawler("POST", "/api/admin-artists", crawlerArtist, "nihonga-crawler-test-key-123");
+  assert.strictEqual(firstCrawlerWrite.statusCode, 200);
+  assert.strictEqual(firstCrawlerWrite.json().artist.handle, "@crawler_artist");
+  assert.strictEqual(firstCrawlerWrite.json().artist.instagram, "https://www.instagram.com/crawler_artist/");
+  const retryCrawlerWrite = await callCrawler("POST", "/api/admin-artists", crawlerArtist, "nihonga-crawler-test-key-123");
+  assert.strictEqual(retryCrawlerWrite.statusCode, 200);
+  assert.strictEqual(retryCrawlerWrite.json().idempotentReplay, true);
+  assert.strictEqual(calls.length, beforeCrawler + 2, "replayed crawler POST does not call Supabase again");
+
+  const crossOriginCrawler = await callCrawler(
+    "POST",
+    "/api/admin-artists",
+    { name: "Blocked Crawler", handle: "@blocked_crawler" },
+    "nihonga-crawler-cross-origin-key",
+    "https://other.example"
+  );
+  assert.strictEqual(crossOriginCrawler.statusCode, 403);
+  assert.strictEqual(calls.length, beforeCrawler + 2, "cross-origin crawler POST does not call Supabase");
+
+  for (let index = 0; index < 1000; index += 1) {
+    artists.push({ id: `filler-${index}`, name: `Filler ${index}`, handle: `@filler_${index}` });
+  }
+  artists.push({ id: "late-artist", name: "Late Artist", handle: "@late_artist" });
+  const beforePagination = calls.length;
+  const paginatedDuplicate = await callCrawler(
+    "POST",
+    "/api/admin-artists",
+    { name: "Another Name", handle: "@late_artist" },
+    "nihonga-crawler-pagination-key"
+  );
+  assert.strictEqual(paginatedDuplicate.statusCode, 409);
+  assert.strictEqual(calls.length, beforePagination + 2, "duplicate check scans the next Supabase page");
+  const beforeDuplicateReplay = calls.length;
+  const duplicateReplay = await callCrawler(
+    "POST",
+    "/api/admin-artists",
+    { name: "Another Name", handle: "@late_artist" },
+    "nihonga-crawler-pagination-key"
+  );
+  assert.strictEqual(duplicateReplay.statusCode, 409);
+  assert.strictEqual(duplicateReplay.json().idempotentReplay, true);
+  assert.strictEqual(calls.length, beforeDuplicateReplay, "replayed duplicate does not call Supabase again");
+
+  const facultyArtist = {
+    name: "中村寿生",
+    sourcePage: "https://geidai.bunsei.ac.jp/teacher_introduction/%E4%B8%AD%E6%9D%91%E5%AF%BF%E7%94%9F/",
+    linkType: "university",
+    region: "栃木",
+    school: "文星芸術大学",
+    styles: ["日本画"],
+    note: "学校公开教师介绍页"
+  };
+  const sourceOnlyWrite = await callCrawler("POST", "/api/admin-artists", facultyArtist, "nihonga-school-faculty-key-123");
+  assert.strictEqual(sourceOnlyWrite.statusCode, 200);
+  assert.strictEqual(sourceOnlyWrite.json().artist.handle, "");
+  assert.strictEqual(sourceOnlyWrite.json().artist.link_type, "university");
+  const sourceOnlyDuplicate = await callCrawler("POST", "/api/admin-artists", facultyArtist, "nihonga-school-faculty-key-456");
+  assert.strictEqual(sourceOnlyDuplicate.statusCode, 409);
 
   const unknownResource = await call("GET", "/api/admin-artists?resource=secrets");
   assert.strictEqual(unknownResource.statusCode, 400);

@@ -7,6 +7,7 @@ process.env.NODE_ENV = "test";
 
 const users = [];
 const sessions = [];
+const submissions = [];
 let nextId = 1;
 
 global.fetch = async function mockSupabaseFetch(input, options = {}) {
@@ -14,7 +15,13 @@ global.fetch = async function mockSupabaseFetch(input, options = {}) {
   const table = url.pathname.split("/").pop();
   const method = String(options.method || "GET").toUpperCase();
   const payload = options.body ? JSON.parse(options.body) : null;
-  const rows = table === "site_users" ? users : table === "site_sessions" ? sessions : null;
+  const rows = table === "site_users"
+    ? users
+    : table === "site_sessions"
+      ? sessions
+      : table === "artist_submissions"
+        ? submissions
+        : null;
   if (!rows) return jsonResponse(404, { message: "table not found" });
 
   const filtered = rows.filter((row) => {
@@ -58,6 +65,8 @@ const register = require("../api/auth-register");
 const login = require("../api/auth-login");
 const session = require("../api/auth-session");
 const logout = require("../api/auth-logout");
+const submitArtist = require("../api/submissions");
+const reportCorrection = require("../api/report-correction");
 
 function jsonResponse(status, body) {
   return new Response(body === null ? null : JSON.stringify(body), {
@@ -66,14 +75,14 @@ function jsonResponse(status, body) {
   });
 }
 
-function request(method, body, cookie = "") {
+function request(method, body, cookie = "", origin = "https://nihonga.example") {
   const raw = body === undefined ? "" : JSON.stringify(body);
   const req = Readable.from(raw ? [raw] : []);
   req.method = method;
   req.url = "/";
   req.headers = {
     host: "nihonga.example",
-    origin: "https://nihonga.example",
+    origin,
     "x-forwarded-proto": "https",
     "user-agent": "auth-test",
     cookie
@@ -92,9 +101,9 @@ function response() {
   };
 }
 
-async function call(handler, method, body, cookie = "") {
+async function call(handler, method, body, cookie = "", origin) {
   const res = response();
-  await handler(request(method, body, cookie), res);
+  await handler(request(method, body, cookie, origin), res);
   return res;
 }
 
@@ -119,6 +128,45 @@ async function main() {
   assert.strictEqual(current.statusCode, 200);
   assert.strictEqual(current.json().authenticated, true);
   assert.strictEqual(current.json().user.email, "artist@example.com");
+
+  const guestSubmission = await call(submitArtist, "POST", {
+    name: "测试画家",
+    instagram: "@test_artist"
+  });
+  assert.strictEqual(guestSubmission.statusCode, 401);
+  assert.strictEqual(guestSubmission.json().message, "请登录后使用此功能。");
+
+  const guestCorrection = await call(reportCorrection, "POST", {
+    artistId: "artist-1",
+    artistName: "测试画家",
+    note: "更新资料"
+  });
+  assert.strictEqual(guestCorrection.statusCode, 401);
+  assert.strictEqual(guestCorrection.json().message, "请登录后使用此功能。");
+  assert.strictEqual(submissions.length, 0);
+
+  const memberSubmission = await call(submitArtist, "POST", {
+    name: "测试画家",
+    instagram: "@test_artist"
+  }, cookie);
+  assert.strictEqual(memberSubmission.statusCode, 200);
+  assert.strictEqual(memberSubmission.json().submission.status, "pending");
+
+  const memberCorrection = await call(reportCorrection, "POST", {
+    artistId: "artist-1",
+    artistName: "测试画家",
+    note: "更新资料"
+  }, cookie);
+  assert.strictEqual(memberCorrection.statusCode, 200);
+  assert.strictEqual(memberCorrection.json().submission.status, "correction");
+  assert.strictEqual(submissions.length, 2);
+
+  const crossOriginSubmission = await call(submitArtist, "POST", {
+    name: "测试画家",
+    instagram: "@test_artist"
+  }, cookie, "https://evil.example");
+  assert.strictEqual(crossOriginSubmission.statusCode, 403);
+  assert.strictEqual(submissions.length, 2);
 
   const wrong = await call(login, "POST", {
     email: "artist@example.com",

@@ -10,7 +10,13 @@ const state = {
   rankingExpanded: false,
   query: "",
   region: ALL,
-  school: ALL
+  school: ALL,
+  tag: ALL,
+  loaded: false,
+  loading: false,
+  loadError: false,
+  rankingLoaded: false,
+  syncKey: "heroSync"
 };
 
 const els = {
@@ -68,6 +74,7 @@ function setSubmissionMessage(message, isError = false) {
 }
 
 function setSync(key, mode = "") {
+  state.syncKey = key;
   els.syncStatus.textContent = I18N.t(key);
   els.syncStatus.dataset.mode = mode;
 }
@@ -87,7 +94,9 @@ async function api(path, options = {}) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.ok === false) {
-    throw new Error(data.message || "请求失败。");
+    const error = new Error(data.message || "请求失败。");
+    error.status = response.status;
+    throw error;
   }
   return data;
 }
@@ -126,10 +135,12 @@ function setAuthMode(mode) {
 
 function showDirectory() {
   els.loginOverlay.hidden = true;
+  IndexUI.resume();
 }
 
 function showLogin(message = "", isError = false) {
   els.loginOverlay.hidden = false;
+  IndexUI.syncAccess();
   if (message) setMessage(message, isError);
 }
 
@@ -228,17 +239,27 @@ async function restoreSession() {
 }
 
 async function loadArtists() {
+  state.loading = true;
+  state.loadError = false;
   setSync("syncing", "loading");
+  render();
   try {
     const data = await api("/api/artists");
     state.artists = Array.isArray(data.artists) ? data.artists : [];
-    localStorage.setItem(CACHE_KEY, JSON.stringify(state.artists));
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(state.artists)); } catch { /* Storage is optional. */ }
     setSync("synced", "ok");
   } catch (error) {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
+    let cached = [];
+    try {
+      const saved = JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
+      if (Array.isArray(saved)) cached = saved;
+    } catch { /* A damaged cache must not prevent browsing or retrying. */ }
     state.artists = cached;
+    state.loadError = !cached.length;
     setSync(cached.length ? "cacheWarn" : "syncError", cached.length ? "warn" : "error");
   }
+  state.loading = false;
+  state.loaded = true;
   render();
   populateCorrectionDropdown();
 }
@@ -250,6 +271,7 @@ async function loadRankings() {
   } catch {
     state.rankings = [];
   }
+  state.rankingLoaded = true;
   renderRankings();
 }
 
@@ -272,46 +294,23 @@ function initials(name) {
 }
 
 function filteredArtists() {
-  const query = state.query.trim().toLowerCase();
-  return state.artists.filter((artist) => {
-    const styles = Array.isArray(artist.styles) ? artist.styles : [];
-    const matchesRegion = state.region === ALL || artist.region === state.region;
-    const matchesSchool = state.school === ALL || artist.school === state.school;
-    const haystack = [
-      artist.name,
-      artist.romanName,
-      artist.handle,
-      artist.region,
-      artist.school,
-      artist.note,
-      ...styles
-    ].join(" ").toLowerCase();
-    return matchesRegion && matchesSchool && (!query || haystack.includes(query));
-  });
+  return IndexUI.filtered();
 }
 
-function renderChips(container, values, active, onClick) {
-  container.innerHTML = "";
-  values.forEach((value) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = `chip${value === active ? " is-active" : ""}`;
-    button.textContent = value;
-    button.addEventListener("click", () => onClick(value));
-    container.append(button);
-  });
-}
+
 
 function renderStats() {
-  const styles = state.artists.flatMap((artist) => Array.isArray(artist.styles) ? artist.styles : []);
-  els.artistCount.textContent = state.artists.length;
-  els.regionCount.textContent = new Set(state.artists.map((artist) => artist.region).filter(Boolean)).size;
-  els.schoolCount.textContent = new Set(state.artists.map((artist) => artist.school).filter(Boolean)).size;
-  els.styleCount.textContent = new Set(styles).size;
+  IndexUI.renderStats();
 }
 
 function renderRankings() {
   els.rankingList.innerHTML = "";
+  els.rankingToggleButton.hidden = true;
+
+  if (!state.rankingLoaded) {
+    els.rankingList.textContent = I18N.t("loadingRanking");
+    return;
+  }
 
   if (!state.rankings.length) {
     const empty = document.createElement("p");
@@ -331,10 +330,9 @@ function renderRankings() {
     link.target = "_blank";
     link.rel = "noreferrer";
     link.className = "ranking-item";
-    const hotMark = index < 3 ? `<i class="ranking-fire" aria-label="热门">🔥</i>` : "";
     link.innerHTML = `
       <strong>${index + 1}</strong>
-      <span>${escapeHtml(item.name)}${hotMark}</span>
+      <span>${escapeHtml(item.name)}</span>
       <em>${escapeHtml(String(item.count))}${escapeHtml(I18N.t("rankingCountSuffix"))}</em>
     `;
     if (item.id) {
@@ -345,77 +343,11 @@ function renderRankings() {
 }
 
 function renderCards() {
-  const list = filteredArtists();
-  els.resultText.textContent = I18N.t("resultText", list.length);
-  els.artistGrid.innerHTML = "";
-
-  if (!list.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty";
-    empty.textContent = I18N.t("emptyResults");
-    els.artistGrid.append(empty);
-    return;
-  }
-
-  list.forEach((artist) => {
-    const styles = Array.isArray(artist.styles) ? artist.styles : [];
-    const instagram = artist.instagram || (artist.handle ? `https://www.instagram.com/${artist.handle.replace(/^@/, "")}/` : "");
-    const source = artist.sourcePage || instagram || "#";
-    const card = document.createElement("article");
-    card.className = "artist-card";
-    card.innerHTML = `
-      <div class="avatar">${escapeHtml(initials(artist.name))}</div>
-      <div class="card-body">
-        <div class="card-title-row">
-          <div>
-            <h4>${escapeHtml(artist.name)}</h4>
-            <p>${escapeHtml(artist.romanName)} · ${escapeHtml(artist.handle)}</p>
-          </div>
-          ${instagram ? `<a class="ig-link" data-artist-id="${escapeHtml(artist.id)}" href="${escapeHtml(instagram)}" target="_blank" rel="noreferrer">${I18N.t("cardOpenIG")}</a>` : `<span class="disabled-link">${I18N.t("cardIGPending")}</span>`}
-        </div>
-        <div class="meta-row">
-          ${[artist.region, artist.school].filter(Boolean).map((item) => `<span>${escapeHtml(item)}</span>`).join("")}
-        </div>
-        <div class="tag-row">${styles.map((style) => `<span>${escapeHtml(style)}</span>`).join("")}</div>
-        <p class="note-text">${escapeHtml(artist.note)}</p>
-        ${source && source !== "#" ? `<a class="source-link" href="${escapeHtml(source)}" target="_blank" rel="noreferrer">${I18N.t("cardSource")}</a>` : ""}
-        <a class="report-link" href="#" data-artist-id="${escapeHtml(artist.id)}">${I18N.t("cardReport")}</a>
-      </div>
-    `;
-    const igLink = card.querySelector(".ig-link");
-    if (igLink && artist.id) {
-      igLink.addEventListener("click", () => trackArtistClick(artist.id));
-    }
-    const sourceLink = card.querySelector(".source-link");
-    if (sourceLink && artist.id) {
-      sourceLink.addEventListener("click", () => trackArtistClick(artist.id));
-    }
-    const reportLink = card.querySelector(".report-link");
-    if (reportLink && artist.id) {
-      reportLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        const panel = document.querySelector(".submission-panel:last-of-type");
-        if (panel) panel.open = true;
-        els.correctionArtistSelect.value = artist.id;
-        els.correctionArtistSelect.dispatchEvent(new Event("change"));
-        panel.scrollIntoView({ behavior: "smooth" });
-      });
-    }
-    els.artistGrid.append(card);
-  });
+  IndexUI.renderCards();
 }
 
 function render() {
-  renderChips(els.regionFilters, unique("region"), state.region, (value) => {
-    state.region = value;
-    render();
-  });
-  renderChips(els.schoolFilters, unique("school"), state.school, (value) => {
-    state.school = value;
-    render();
-  });
-  renderStats();
-  renderCards();
+  IndexUI.render();
 }
 
 function trackArtistClick(artistId) {
@@ -499,6 +431,7 @@ els.logoutButton.addEventListener("click", async () => {
     els.passwordConfirmInput.value = "";
     els.rememberLoginInput.checked = false;
     setAuthMode("login");
+    IndexUI.accountChanged();
     showLogin(I18N.t("msgLogout"));
   }
 });
@@ -533,6 +466,7 @@ els.resetButton.addEventListener("click", () => {
   state.query = "";
   state.region = ALL;
   state.school = ALL;
+  state.tag = ALL;
   els.searchInput.value = "";
   render();
   populateCorrectionDropdown();
@@ -550,7 +484,8 @@ function populateCorrectionDropdown() {
   state.artists.slice().sort((a, b) => a.name.localeCompare(b.name, "ja")).forEach((artist) => {
     const option = document.createElement("option");
     option.value = artist.id;
-    option.textContent = `${artist.name} (${artist.school || "未确认"})`;
+    const school = ArtistIndex.clean(artist.school);
+    option.textContent = school ? `${artist.name} (${school})` : artist.name;
     select.append(option);
   });
 }
@@ -579,7 +514,7 @@ els.submissionForm.addEventListener("submit", async (event) => {
     els.submissionForm.reset();
     setSubmissionMessage(I18N.t("msgSubmitted"));
   } catch (error) {
-    setSubmissionMessage(error.message, true);
+    setSubmissionMessage(error.status === 401 ? I18N.t("memberOnlyContribution") : error.message, true);
   }
 });
 
@@ -610,7 +545,7 @@ els.correctionForm.addEventListener("submit", async (event) => {
     els.correctionForm.reset();
     els.correctionMessage.textContent = I18N.t("correctDone");
   } catch (error) {
-    els.correctionMessage.textContent = error.message;
+    els.correctionMessage.textContent = error.status === 401 ? I18N.t("memberOnlyContribution") : error.message;
     els.correctionMessage.classList.add("is-error");
   }
 });
@@ -619,23 +554,39 @@ function refreshI18n() { if (typeof I18N !== "undefined") { I18N.applyToDOM(); I
 els.langSelect.addEventListener("change", () => { I18N.setLang(els.langSelect.value); if (els.loginLangSelect) els.loginLangSelect.value = I18N.current; refreshI18n(); });
 if (els.langSelect && typeof I18N !== "undefined") { els.langSelect.value = I18N.current; } if (els.loginLangSelect && typeof I18N !== "undefined") { els.loginLangSelect.value = I18N.current; els.loginLangSelect.addEventListener("change", () => { I18N.setLang(els.loginLangSelect.value); if (els.langSelect) els.langSelect.value = I18N.current; refreshI18n(); }); }
 I18N.applyToDOM();
+IndexUI.init();
 
-// Welcome page logic
+// Welcome page logic. Returning visitors with an existing session can resume
+// the directory without having to pass through the welcome screen again.
 setAuthMode("login");
 const initialSession = restoreSession();
 
-els.welcomeEnterBtn.addEventListener("click", () => {
+function enterWelcome({ animate = true } = {}) {
+  if (els.welcomeOverlay.hidden) return;
+  if (!animate) {
+    els.welcomeOverlay.classList.remove("fade-out");
+    els.welcomeOverlay.hidden = true;
+    IndexUI.syncAccess();
+    IndexUI.resume();
+    return;
+  }
   els.welcomeOverlay.classList.add("fade-out");
   setTimeout(() => {
     els.welcomeOverlay.hidden = true;
-    initialSession.then((restored) => {
-      if (!restored) showLogin();
-    });
+    IndexUI.resume();
   }, 800);
+}
+
+els.welcomeEnterBtn.addEventListener("click", () => {
+  enterWelcome();
+  initialSession.then((restored) => {
+    if (!restored) showLogin();
+  });
 });
 
 initialSession.then((restored) => {
-  if (!restored) showLogin();
+  if (restored) enterWelcome({ animate: false });
+  else showLogin();
 });
 
 

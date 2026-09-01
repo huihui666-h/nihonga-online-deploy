@@ -2,9 +2,13 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
+function normalizeText(value) {
+  return String(value ?? "").normalize("NFKC").replace(/\s+/gu, " ").trim();
+}
+
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Admin-Password");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Admin-Password, Idempotency-Key, X-Idempotency-Key");
   // The browser app calls same-origin API routes. Omitting a wildcard origin
   // prevents credentialed cross-origin requests from gaining access later.
 }
@@ -99,57 +103,104 @@ async function supabaseFetch(path, options = {}) {
   return data;
 }
 
-function normalizeArtist(input) {
-  const styles = Array.isArray(input.styles)
-    ? input.styles
-    : String(input.styles || "")
-      .split(/[,，、\n]/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-  return {
-    name: String(input.name || "").trim(),
-    roman_name: String(input.roman_name || input.romanName || "").trim(),
-    handle: String(input.handle || "").trim(),
-    instagram: String(input.instagram || "").trim(),
-    source_page: String(input.source_page || input.sourcePage || "").trim(),
-    link_type: String(input.link_type || input.linkType || "instagram").trim() || "instagram",
-    region: String(input.region || "").trim(),
-    school: String(input.school || "").trim(),
-    styles,
-    note: String(input.note || "").trim()
-  };
-}
-
 function canonicalInstagramHandle(value) {
-  const text = String(value || "").trim();
+  const text = normalizeText(value);
   if (!text) return "";
 
   let handle = text;
   try {
-    const url = new URL(/^https?:\/\//i.test(text) ? text : `https://${text}`);
-    if (url.hostname.toLowerCase().endsWith("instagram.com")) {
-      handle = url.pathname.split("/").filter(Boolean)[0] || "";
+    const candidate = /^(?:https?:)?\/\//i.test(text)
+      ? (text.startsWith("//") ? `https:${text}` : text)
+      : `https://${text}`;
+    const url = new URL(candidate);
+    const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
+    if (hostname === "instagram.com" || hostname === "www.instagram.com") {
+      const segments = url.pathname.split("/").filter(Boolean);
+      if (segments[0]?.toLowerCase() === "_u") segments.shift();
+      if (segments.length !== 1) return "";
+      handle = segments[0];
+    } else if (/instagram\.com(?:\/|$)/i.test(text)) {
+      return "";
     }
   } catch {
+    if (/instagram\.com(?:\/|$)/i.test(text)) return "";
     handle = text;
   }
 
-  handle = handle.replace(/^@/, "").trim().toLowerCase();
+  handle = normalizeText(handle).replace(/^@/, "").toLowerCase();
   if (!/^[a-z0-9._]{1,30}$/.test(handle)) return "";
-  if (["accounts", "about", "direct", "explore", "p", "reels", "stories"].includes(handle)) return "";
+  if (["accounts", "about", "challenge", "direct", "developer", "directory", "emails", "explore", "p", "reel", "reels", "stories", "tags", "locations", "hashtag", "tv", "privacy", "legal"].includes(handle)) return "";
   return handle;
+}
+
+function canonicalInstagramUrl(value) {
+  const handle = canonicalInstagramHandle(value);
+  return handle ? `https://www.instagram.com/${handle}/` : "";
+}
+
+function normalizeArtist(input) {
+  const source = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+  const styles = Array.isArray(source.styles)
+    ? source.styles.map(normalizeText).filter(Boolean)
+    : normalizeText(source.styles)
+      .split(/[,，、\n]/)
+      .map(normalizeText)
+      .filter(Boolean);
+  const handle = canonicalInstagramHandle(source.handle) || canonicalInstagramHandle(source.instagram);
+  const instagram = canonicalInstagramUrl(handle) || normalizeText(source.instagram);
+
+  return {
+    name: normalizeText(source.name),
+    roman_name: normalizeText(source.roman_name || source.romanName),
+    handle: handle ? `@${handle}` : normalizeText(source.handle),
+    instagram,
+    source_page: normalizeText(source.source_page || source.sourcePage) || instagram,
+    link_type: handle ? "instagram" : (normalizeText(source.link_type || source.linkType || "instagram") || "instagram"),
+    region: normalizeText(source.region),
+    school: normalizeText(source.school),
+    styles,
+    note: normalizeText(source.note)
+  };
 }
 
 async function findArtistDuplicate(artist, excludeId = "") {
   const handle = canonicalInstagramHandle(artist.handle) || canonicalInstagramHandle(artist.instagram);
-  if (!handle) return null;
 
-  const rows = await supabaseFetch("artists?select=id,name,handle,instagram&limit=10000");
-  return rows.find((row) => {
-    if (excludeId && row.id === excludeId) return false;
-    return canonicalInstagramHandle(row.handle) === handle || canonicalInstagramHandle(row.instagram) === handle;
-  }) || null;
+  // PostgREST deployments commonly cap a response at 1,000 rows even when a
+  // larger `limit` is requested. Walk pages so duplicate checks remain valid
+  // as the directory grows beyond that cap.
+  const pageSize = 1000;
+  if (handle) {
+    for (let offset = 0; offset < 100000; offset += pageSize) {
+      const rows = await supabaseFetch(
+        `artists?select=id,name,handle,instagram&limit=${pageSize}&offset=${offset}`
+      );
+      if (!Array.isArray(rows) || rows.length === 0) return null;
+      const duplicate = rows.find((row) => {
+        if (excludeId && row.id === excludeId) return false;
+        return canonicalInstagramHandle(row.handle) === handle || canonicalInstagramHandle(row.instagram) === handle;
+      });
+      if (duplicate) return duplicate;
+      if (rows.length < pageSize) return null;
+    }
+    return null;
+  }
+
+  // School and other public-source records may not have an Instagram handle.
+  // Their stable identity is the normalized public name plus school; when a
+  // school value is unavailable, use the exact source page with the name.
+  const name = normalizeText(artist.name);
+  const school = normalizeText(artist.school);
+  const sourcePage = normalizeText(artist.source_page);
+  if (!name || (!school && !sourcePage)) return null;
+  const filters = [`name=eq.${encodeURIComponent(name)}`];
+  if (school) filters.push(`school=eq.${encodeURIComponent(school)}`);
+  else filters.push(`source_page=eq.${encodeURIComponent(sourcePage)}`);
+  const rows = await supabaseFetch(
+    `artists?select=id,name,handle,instagram,source_page,school&${filters.join("&")}&limit=${pageSize}`
+  );
+  if (!Array.isArray(rows)) return null;
+  return rows.find((row) => !excludeId || row.id !== excludeId) || null;
 }
 
 module.exports = {

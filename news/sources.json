@@ -1,0 +1,61 @@
+{
+  "sources": [
+    {
+      "key": "nihon-bijutsuin-exhibitions",
+      "name": "日本美術院",
+      "url": "https://nihonbijutsuin.or.jp/exhibitions_list.php",
+      "kind": "auto",
+      "keywords": ["日本画", "日本美術院", "院展", "春の院展", "再興"],
+      "link_prefixes": ["/exhibitions_detail.php"],
+      "max_items": 30,
+      "allow_images": false,
+      "trusted_for_auto_publish": true,
+      "fetch_details": true
+    },
+    {
+      "key": "nihon-bijutsuin-news",
+      "name": "日本美術院",
+      "url": "https://nihonbijutsuin.or.jp/news_list.php",
+      "kind": "auto",
+      "link_prefixes": ["/news_detail.php"],
+      "max_items": 30,
+      "allow_images": false,
+      "trusted_for_auto_publish": true,
+      "fetch_details": true
+    },
+    {
+      "key": "nitten-events",
+      "name": "日展",
+      "url": "https://nitten.or.jp/event/",
+      "kind": "auto",
+      "link_prefixes": ["/event/event-"],
+      "max_items": 30,
+      "allow_images": false,
+      "trusted_for_auto_publish": true,
+      "fetch_details": true
+    },
+    {
+      "key": "nitten-news",
+      "name": "日展",
+      "url": "https://nitten.or.jp/news/",
+      "kind": "auto",
+      "link_prefixes": ["/news/news-"],
+      "max_items": 30,
+      "allow_images": false,
+      "trusted_for_auto_publish": true,
+      "fetch_details": true
+    },
+    {
+      "key": "yamatane-exhibitions",
+      "name": "山種美術館",
+      "url": "https://www.yamatane-museum.jp/exhibitions/schedule.html",
+      "kind": "auto",
+      "keywords": [],
+      "link_prefixes": ["/exhibitions/2026/", "/exhibitions/2027/"],
+      "max_items": 20,
+      "allow_images": false,
+      "trusted_for_auto_publish": true,
+      "fetch_details": true
+    }
+  ]
+}

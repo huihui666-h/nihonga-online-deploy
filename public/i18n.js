@@ -1,5 +1,12 @@
 ﻿const I18N = {
-  current: localStorage.getItem("nihongaLang") || "zh",
+  current: (() => {
+    try {
+      const storedLanguage = localStorage.getItem("nihongaLang");
+      return ["zh", "en", "ja"].includes(storedLanguage) ? storedLanguage : "ja";
+    } catch {
+      return "ja";
+    }
+  })(),
   data: {
     zh: {
       // Login
@@ -27,6 +34,7 @@
       loginSuccess: "登录成功。",
       registerCheckEmail: "注册已提交，请按提示完成后再登录。",
       loginContact: "首次使用？注册一个邮箱账户即可。",
+      forgotPasswordContact: "忘记密码？请联系管理员处理。",
       // Sidebar
       searchLabel: "搜索",
       searchPlaceholder: "画家、学校、地区、标签",
@@ -166,7 +174,21 @@
       msgNeedPassword: "请输入管理员密码。",
       msgWrongPassword: "管理员密码不正确。",
       msgCorrectionMarked: "已标记完成。",
-      msgCorrectionDeleted: "已删除。"
+      msgCorrectionDeleted: "已删除。",
+      announcementTrigger: "更新公告",
+      announcementEyebrow: "上线公告 · 2026.09.01",
+      announcementTitle: "本次更新了什么？",
+      announcementSummary: "日本画画家索引现已上线新版本，以下是这次可以直接使用的内容。",
+      announcementItemNewsTitle: "Nihonga Now 日本画新闻",
+      announcementItemNewsText: "新增展览、公募和画家动态栏目，首页可预览，进入新闻页可查看来源链接。",
+      announcementItemDirectoryTitle: "画家目录扩充与整理",
+      announcementItemDirectoryText: "上线最新收录的画家资料，支持按名称、学校、地区和标签搜索筛选。",
+      announcementItemAccountTitle: "访客与账号体验",
+      announcementItemAccountText: "可直接访客浏览；登录后可保存收藏、推荐画家和提交纠错。",
+      announcementItemReliabilityTitle: "同步与排行改进",
+      announcementItemReliabilityText: "接入 Supabase 数据同步与点击排行，更新会在刷新后生效。",
+      announcementDateLabel: "2026 年 9 月 1 日",
+      announcementAcknowledge: "我知道了，继续浏览"
     },
     en: {
       loginMode: "Sign in",
@@ -193,6 +215,7 @@
       loginSuccess: "Signed in.",
       registerCheckEmail: "Registration submitted. Follow the instructions, then sign in.",
       loginContact: "New here? Register with your email to begin.",
+      forgotPasswordContact: "Forgot your password? Contact the administrator for help.",
       searchLabel: "Search",
       searchPlaceholder: "Artist, school, region, tag",
       filterToggle: "Directory Filters",
@@ -318,7 +341,21 @@
       msgNeedPassword: "Please enter admin password.",
       msgWrongPassword: "Incorrect admin password.",
       msgCorrectionMarked: "Marked as done.",
-      msgCorrectionDeleted: "Deleted."
+      msgCorrectionDeleted: "Deleted.",
+      announcementTrigger: "Release notes",
+      announcementEyebrow: "RELEASE · 2026.09.01",
+      announcementTitle: "What changed in this release?",
+      announcementSummary: "The Nihonga artist index is now live with a new release. Here is what you can use today.",
+      announcementItemNewsTitle: "Nihonga Now news",
+      announcementItemNewsText: "Browse exhibitions, open calls and artist updates from the homepage, with links to the original sources.",
+      announcementItemDirectoryTitle: "A larger, clearer directory",
+      announcementItemDirectoryText: "The latest artist records are online, with search and filters for names, schools, regions and tags.",
+      announcementItemAccountTitle: "Guest and account access",
+      announcementItemAccountText: "Browse as a guest, or sign in to save favorites, recommend artists and report corrections.",
+      announcementItemReliabilityTitle: "Sync and ranking improvements",
+      announcementItemReliabilityText: "Supabase sync and view rankings are connected; refreshed pages show updates.",
+      announcementDateLabel: "September 1, 2026",
+      announcementAcknowledge: "Got it, continue browsing"
     },
     ja: {
       loginMode: "ログイン",
@@ -345,6 +382,7 @@
       loginSuccess: "ログインしました。",
       registerCheckEmail: "登録を受け付けました。案内に従ってからログインしてください。",
       loginContact: "初めての方はメールアドレスで登録してください。",
+      forgotPasswordContact: "パスワードを忘れた場合は、管理者にご連絡ください。",
       searchLabel: "検索",
       searchPlaceholder: "画家、学校、地域、タグ",
       filterToggle: "絞り込み",
@@ -470,18 +508,37 @@
       msgNeedPassword: "管理者パスワードを入力してください。",
       msgWrongPassword: "管理者パスワードが正しくありません。",
       msgCorrectionMarked: "完了としてマークしました。",
-      msgCorrectionDeleted: "削除しました。"
+      msgCorrectionDeleted: "削除しました。",
+      announcementTrigger: "更新のお知らせ",
+      announcementEyebrow: "公開のお知らせ · 2026.09.01",
+      announcementTitle: "今回の更新内容",
+      announcementSummary: "日本画作家索引を新しいバージョンで公開しました。今回から利用できる内容をご案内します。",
+      announcementItemNewsTitle: "Nihonga Now 日本画ニュース",
+      announcementItemNewsText: "展覧会、公募、作家の動きを集める欄を追加。トップページから概要を見て、原文へのリンクを開けます。",
+      announcementItemDirectoryTitle: "作家索引を拡充・整理",
+      announcementItemDirectoryText: "新しく収録した作家情報を公開し、名前・学校・地域・タグから検索と絞り込みができます。",
+      announcementItemAccountTitle: "ゲストとアカウント",
+      announcementItemAccountText: "ゲストのまま閲覧できます。ログインするとお気に入り、作家推薦、修正報告を利用できます。",
+      announcementItemReliabilityTitle: "同期とランキングを改善",
+      announcementItemReliabilityText: "Supabase 同期と閲覧ランキングを接続。ページを更新すると変更が反映されます。",
+      announcementDateLabel: "2026年9月1日",
+      announcementAcknowledge: "確認して閲覧を続ける"
     }
   },
   t(key, ...args) {
     const lang = this.current;
-    const val = (this.data[lang] && this.data[lang][key]) || (this.data.zh && this.data.zh[key]) || key;
+    const val = (this.data[lang] && this.data[lang][key]) || (this.data.ja && this.data.ja[key]) || key;
     if (typeof val === "function") return val(...args);
     return val;
   },
   setLang(lang) {
-    this.current = lang;
-    localStorage.setItem("nihongaLang", lang);
+    const nextLanguage = ["ja", "zh", "en"].includes(lang) ? lang : "ja";
+    this.current = nextLanguage;
+    try {
+      localStorage.setItem("nihongaLang", nextLanguage);
+    } catch {
+      // Language selection still applies for this page when storage is unavailable.
+    }
   },
   applyToDOM(root = document) {
     root.querySelectorAll("[data-i18n]").forEach((el) => {

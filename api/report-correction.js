@@ -1,4 +1,5 @@
 const { assertConfig, readBody, sendJson, setCors, supabaseFetch } = require("./_supabase");
+const { getSessionUser, requireSameOrigin, sendAuthJson } = require("./_auth");
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -13,9 +14,16 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  if (!requireSameOrigin(req, res)) return;
   if (!assertConfig(res)) return;
 
   try {
+    const current = await getSessionUser(req);
+    if (!current) {
+      sendAuthJson(res, 401, { ok: false, message: "请登录后使用此功能。" });
+      return;
+    }
+
     const body = await readBody(req);
     const artistId = String(body.artistId || "").trim();
     const artistName = String(body.artistName || "").trim();

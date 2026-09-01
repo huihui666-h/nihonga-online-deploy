@@ -301,6 +301,10 @@ h4,
   display: grid;
   grid-template-columns: minmax(390px, 0.86fr) minmax(0, 1.14fr);
   place-items: stretch;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  max-height: 100dvh;
   padding: 0;
   overflow: auto;
   background: var(--paper);
@@ -1439,6 +1443,51 @@ h4,
   .disabled-link {
     width: fit-content;
   }
+}
+
+/* Keep authentication choices inside the first phone viewport while leaving
+   the explanatory material available below for users who need it. */
+@media (max-width: 720px) {
+  .login-overlay {
+    grid-template-rows: minmax(132px, 18vh) auto;
+  }
+
+  .login-art { min-height: 132px; }
+  .login-art figcaption { right: 16px; bottom: 12px; font-size: 10px; }
+
+  .login-card {
+    padding: 14px 0 28px;
+  }
+
+  .login-brand-logo {
+    width: 58px;
+    margin-bottom: 6px;
+  }
+
+  .auth-mode-tabs { margin: 10px 0 12px; }
+  .login-card h1 { margin-top: 6px; font-size: 32px; }
+  #loginDesc { margin-top: 8px; font-size: 13px; }
+  .login-card label { margin-top: 12px; }
+  .login-card input[type="email"],
+  .login-card input[type="text"],
+  .login-card input[type="password"] { min-height: 44px; }
+  .login-card > button[type="submit"] { margin-top: 12px; }
+  .login-card > .guest-login-button { margin-top: 8px; }
+  #loginMessage { margin-top: 10px; font-size: 11px; }
+  .login-card .login-contact { margin-top: 5px; font-size: 11px; }
+  .access-guide { margin: 10px 0; padding-top: 8px; }
+  .login-lang-row { padding-top: 10px; }
+  .login-statement { font-size: 10px; }
+}
+
+@media (min-width: 721px) and (max-height: 900px) {
+  .login-card { padding: 22px 0; }
+  .login-brand-logo { width: 72px; margin-bottom: 10px; }
+  .auth-mode-tabs { margin: 12px 0 16px; }
+  .login-card h1 { font-size: 36px; }
+  .login-card label { margin-top: 14px; }
+  .login-card > button[type="submit"] { margin-top: 14px; }
+  .access-guide { margin: 10px 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

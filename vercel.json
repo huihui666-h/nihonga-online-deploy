@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/api/admin-news-ai",
+      "destination": "/api/artists?resource=news-ai"
+    },
+    {
+      "source": "/api/news",
+      "destination": "/api/artists?resource=news"
+    },
+    {
+      "source": "/news",
+      "destination": "/news.html"
+    },
+    {
       "source": "/admin",
       "destination": "/admin.html"
     },
