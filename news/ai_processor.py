@@ -262,6 +262,14 @@ class AIProcessor:
     ) -> None:
         self.api_key = (api_key if api_key is not None else os.getenv("OPENAI_API_KEY", "")).strip()
         self.base_url = (base_url or os.getenv("OPENAI_BASE_URL") or DEFAULT_BASE_URL).strip()
+        self.wire_api = (os.getenv("OPENAI_WIRE_API", "chat") or "chat").strip().lower()
+        if self.wire_api == "responses":
+            if self.base_url.rstrip("/").endswith("/chat/completions"):
+                self.base_url = self.base_url.rsplit("/", 2)[0] + "/responses"
+            elif self.base_url.rstrip("/").endswith("/v1"):
+                self.base_url = self.base_url.rstrip("/") + "/responses"
+            elif not self.base_url.rstrip("/").endswith("/responses"):
+                self.base_url = self.base_url.rstrip("/") + "/v1/responses"
         self.model = (model or os.getenv("OPENAI_MODEL") or DEFAULT_MODEL).strip()
         self.timeout = max(1.0, float(timeout))
         self.retry_attempts = max(1, min(5, int(retry_attempts)))
@@ -273,15 +281,25 @@ class AIProcessor:
         return bool(self.api_key)
 
     def _request_once(self, prompt: str) -> Any:
-        payload = {
-            "model": self.model,
-            "temperature": 0.1,
-            "response_format": {"type": "json_object"},
-            "messages": [
-                {"role": "system", "content": "Output strict JSON only."},
-                {"role": "user", "content": prompt},
-            ],
-        }
+        if self.wire_api == "responses":
+            payload = {
+                "model": self.model,
+                "instructions": "Output strict JSON only.",
+                "input": prompt,
+                "temperature": 0.1,
+                "max_output_tokens": 700,
+                "text": {"format": {"type": "json_object"}},
+            }
+        else:
+            payload = {
+                "model": self.model,
+                "temperature": 0.1,
+                "response_format": {"type": "json_object"},
+                "messages": [
+                    {"role": "system", "content": "Output strict JSON only."},
+                    {"role": "user", "content": prompt},
+                ],
+            }
         if self.request_fn:
             try:
                 return self.request_fn(self.base_url, payload, self.timeout)
@@ -350,6 +368,18 @@ class AIProcessor:
                 raise AIProcessorError("AI response did not contain choices.message.content") from error
         else:
             content = response
+            if isinstance(response, Mapping):
+                content = response.get("output_text", "")
+                if not content:
+                    for output in response.get("output", []) if isinstance(response.get("output"), list) else []:
+                        for part in output.get("content", []) if isinstance(output, Mapping) and isinstance(output.get("content"), list) else []:
+                            if isinstance(part, Mapping) and isinstance(part.get("text"), str):
+                                content = part["text"]
+                                break
+                        if content:
+                            break
+                if not content and self.wire_api != "responses":
+                    content = response
         return normalize_ai_result(_extract_json(content), raw)
 
 
