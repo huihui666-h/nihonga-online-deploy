@@ -223,7 +223,7 @@ class NewsPipelineTests(unittest.TestCase):
                 trusted_source=True,
                 now=date(2026, 9, 1),
             ),
-            "candidate",
+            "published",
         )
 
     def test_sync_links_adds_before_removing_stale_links(self):

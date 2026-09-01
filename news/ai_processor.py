@@ -207,14 +207,17 @@ def determine_status(
     for key in ("start_date", "end_date"):
         if value.get(key) not in (None, ""):
             date_values[key] = value[key]
-    if not trusted_source or _date_anomaly(date_values, now=now):
+    # Trusted first-party sources can be published automatically once AI has
+    # confirmed relevance. Date parsing anomalies are retained in the record
+    # but must not hide otherwise valid official announcements.
+    if not trusted_source:
         return "candidate"
     # The crawler preserves malformed source dates as a marker instead of
     # silently converting them to null.  Keep those records reviewable even
     # when the model still rates the item highly; an absent date is different
     # from a date that failed parsing.
-    if raw_value.get("date_parse_error") is True:
-        return "candidate"
+    # Keep malformed dates visible with a null date rather than silently
+    # dropping trusted-source news into the review queue.
     today = now or datetime.now(timezone.utc).date()
     end_date = _iso_date(date_values.get("end_date"))
     if category in {"exhibition", "open_call"} and end_date and date.fromisoformat(end_date) < today:
