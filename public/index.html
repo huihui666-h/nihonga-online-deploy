@@ -3,12 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="HUI が選び、整理する日本画作家の発見ツール。作家名・学校・地域・タグから日本画を探し、Instagram で作品をご覧ください。" />
-    <title data-i18n="indexBrand">画家索引</title>
+    <meta name="description" content="日本画作家を探すための独立インデックス。作家、学校、地域、題材などから日本画作家を探すことができます。" />
+    <meta property="og:title" content="NIHONGA INDEX｜日本画作家インデックス" />
+    <meta property="og:description" content="日本画作家を探すための独立インデックス。作家、学校、地域、題材などから日本画作家を探すことができます。" />
+    <link rel="canonical" href="https://nihonga-online-deploy.vercel.app/" />
+    <title>NIHONGA INDEX｜日本画作家インデックス</title>
     <link rel="stylesheet" href="styles.css?v=6" />
     <link rel="stylesheet" href="editorial.css?v=6" />
-    <link rel="stylesheet" href="index.css?v=5" />
-    <link rel="stylesheet" href="news.css?v=3" />
+    <link rel="stylesheet" href="index.css?v=6" />
+    <link rel="stylesheet" href="news.css?v=4" />
     <link rel="stylesheet" href="announcement.css?v=2" />
     <script src="page-transition.js?v=1"></script>
     <script src="i18n.js?v=5"></script>
@@ -17,8 +20,8 @@
   </head>
   <body class="index-page">
     
-    <div id="welcomeOverlay" class="welcome-overlay" aria-label="画家索引・ウェルカムページ">
-      <h1 class="sr-only">画家索引</h1>
+    <div id="welcomeOverlay" class="welcome-overlay" aria-label="NIHONGA INDEX・ウェルカムページ">
+      <h1 class="sr-only">NIHONGA INDEX</h1>
       <div class="welcome-split" aria-hidden="true">
         <div class="welcome-paper"></div>
         <figure class="welcome-art">
@@ -27,8 +30,8 @@
       </div>
 
       <div class="welcome-brand">
-        <strong data-i18n="indexBrand">画家索引</strong>
-        <span data-i18n="curatedBy">CHEN JUNHUI が選び、整理</span>
+        <strong data-i18n="indexBrand">NIHONGA INDEX</strong>
+        <span data-i18n="curatedBy">A project by HUI STUDIO</span>
       </div>
 
       <div class="welcome-title-layer welcome-title-ink" aria-hidden="true">
@@ -62,7 +65,7 @@
           <button id="registerModeButton" class="auth-mode" type="button" role="tab" aria-selected="false" data-mode="register" data-i18n="registerMode">新規登録</button>
         </div>
         <h1 id="loginTitle" data-i18n="loginTitle">メールでログイン</h1>
-        <p id="loginDesc" data-i18n="loginDesc">メールアドレスとパスワードで日本画画家ディレクトリにログインします。</p>
+        <p id="loginDesc" data-i18n="loginDesc">メールアドレスとパスワードで NIHONGA INDEX にログインします。</p>
         <label id="displayNameField" hidden>
           <span data-i18n="displayNameLabel">表示名（任意）</span>
           <input id="displayNameInput" name="displayName" type="text" autocomplete="nickname" maxlength="60" data-i18n-placeholder="displayNamePlaceholder" placeholder="表示名" />
@@ -90,22 +93,22 @@
         <p class="login-contact password-help" data-i18n="forgotPasswordContact">パスワードを忘れた場合は、管理者にご連絡ください。</p>
         <details class="access-guide"><summary data-i18n="accountGuide">ゲストと登録ユーザーの違い</summary><div data-access-comparison></div><p data-i18n="accountScope"></p></details>
         <div class="login-lang-row"><span class="lang-label">言語切替 / Language</span><select id="loginLangSelect" class="lang-select"><option value="ja">日本語</option><option value="zh">中文</option><option value="en">English</option></select></div>
-      <p class="login-statement" data-i18n="heroStatementText">CHEN JUNHUI が収集・整理。学習・研究・個人鑑賞のみに使用し、商用利用不可。連絡先：WeChat huihui10506 / Gmail hhui78136@gmail.com。</p>
+      <p class="login-statement" data-i18n="heroStatementText">HUI STUDIO が編集・運営し、大学・展覧会・公募・画廊・公式サイト・SNS など複数の公開情報源を整理しています。</p>
       </form>
     </div>
 
 
     <div class="app-shell index-shell" id="home">
-      <a class="skip-link" href="#all-artists" data-i18n="skipToArtists">跳到画家目录</a>
+      <a class="skip-link" href="#all-artists" data-i18n="skipToArtists">作家一覧へ</a>
       <header class="index-header">
-        <a class="index-brand" href="#home" aria-label="HUI STUDIO — 首页" data-i18n-aria-label="homeLink"><span class="brand-monogram" aria-hidden="true">H</span><span>HUI STUDIO<small data-i18n="indexName">画家索引</small></span></a>
+        <a class="index-brand" href="#home" aria-label="NIHONGA INDEX — ホーム" data-i18n-aria-label="homeLink"><span class="brand-monogram" aria-hidden="true">N</span><span>NIHONGA INDEX<small data-i18n="indexName">日本画作家インデックス</small></span></a>
         <nav class="index-nav" aria-label="主导航" data-i18n-aria-label="mainNavigation">
-          <a href="#all-artists" data-i18n="navArtists">画家目录</a>
-          <a href="#explore" data-i18n="navExplore">探索画家</a>
+          <a href="#all-artists" data-i18n="navArtists">作家一覧</a>
+          <a href="#explore" data-i18n="navExplore">作家を探す</a>
           <a href="/news" class="nav-news-link" data-i18n-aria-label="navNewsAria"><span class="nav-news-mark" aria-hidden="true"></span><span data-i18n="navNews">Nihonga Now</span></a>
-          <button type="button" data-open-finder><span data-i18n="navAiFinder">AI 找画家</span></button>
-          <a href="#about" data-i18n="navAbout">关于</a>
-          <a href="#contribute" data-i18n="navContribute">参与共建</a>
+          <button type="button" data-open-finder hidden aria-hidden="true" tabindex="-1"><span data-i18n="navAiFinder">AI 作家ナビ</span></button>
+          <a href="#about" data-i18n="navAbout">このサイトについて</a>
+          <a href="#contribute" data-i18n="navContribute">情報提供</a>
         </nav>
         <div class="header-tools">
           <label class="sr-only" for="langSelect">言語 / Language</label>
@@ -118,140 +121,144 @@
       <main class="index-main">
         <section class="index-hero" aria-labelledby="indexTitle">
           <div class="index-hero-copy">
-            <p class="eyebrow"><span data-i18n="indexBrand">画家索引</span> <span class="tiny-line" aria-hidden="true"></span></p>
+            <p class="eyebrow"><span data-i18n="indexBrand">NIHONGA INDEX</span> <span class="tiny-line" aria-hidden="true"></span></p>
             <h1 id="indexTitle" lang="ja">日本画作家を<br>見つける。</h1>
-            <p class="hero-subtitle" data-i18n="indexSubtitle">从作家、题材与学校，发现日本画。</p>
+            <p class="hero-subtitle" data-i18n="indexSubtitle">日本画を、作家・題材・学校から探す。</p>
             <form id="heroSearchForm" class="hero-search" role="search">
-              <label class="sr-only" for="heroSearchInput" data-i18n="searchLabel">搜索</label>
+              <label class="sr-only" for="heroSearchInput" data-i18n="searchLabel">検索</label>
               <span class="search-icon" aria-hidden="true"></span>
-              <input id="heroSearchInput" type="search" autocomplete="off" data-i18n-placeholder="indexSearchPlaceholder" placeholder="作家名、学校、关键词…" />
-              <button type="submit"><span data-i18n="searchLabel">搜索</span><span aria-hidden="true">↗</span></button>
+              <input id="heroSearchInput" type="search" autocomplete="off" data-i18n-placeholder="indexSearchPlaceholder" placeholder="作家名、学校、地域、キーワード…" />
+              <button type="submit"><span data-i18n="searchLabel">検索</span><span aria-hidden="true">↗</span></button>
             </form>
-            <div class="quick-discovery"><span data-i18n="browseByTag">从标签开始</span><div id="quickTags" class="quick-tags"></div></div>
+            <div class="quick-discovery"><span data-i18n="browseByTag">タグから探す</span><div id="quickTags" class="quick-tags"></div></div>
             <a id="heroSearchResult" class="hero-search-result" href="#all-artists" role="status" hidden></a>
           </div>
           <figure class="index-hero-art">
-            <img src="assets/hasegawa-pine-trees.jpg" alt="長谷川等伯《松林図屏風》局部" width="1600" height="739" />
-            <figcaption><span>長谷川等伯 · 松林図屏風</span><span data-i18n="publicDomainDetail">公有领域 · 局部</span></figcaption>
+            <img src="assets/hasegawa-pine-trees.jpg" alt="長谷川等伯《松林図屏風》部分" width="1600" height="739" />
+            <figcaption><span>長谷川等伯 · 松林図屏風</span><span data-i18n="publicDomainDetail">パブリックドメイン · 部分</span></figcaption>
           </figure>
         </section>
 
+        <section id="nihonga-now" class="index-section news-home-section" aria-labelledby="nihongaNowTitle">
+          <div class="section-heading news-home-heading"><div><p class="eyebrow news-home-eyebrow"><span class="news-live-mark" aria-hidden="true"></span><span data-i18n="newsHomeEyebrow">NIHONGA NOW</span></p><h2 id="nihongaNowTitle" data-i18n="newsHomeTitle">日本画ニュース</h2><p class="news-home-lede" data-i18n="newsHomeLede">展覧会、公募、作家の動きを、いち早く。</p></div><a class="news-home-more" href="/news"><span data-i18n="newsHomeMore">すべて見る</span><span aria-hidden="true">→</span></a></div>
+          <div id="newsHomeList" class="news-home-list" aria-live="polite" aria-busy="true"></div>
+        </section>
+
         <section id="explore" class="index-section" aria-labelledby="featuredTitle">
-          <div class="section-heading"><div><p class="eyebrow" data-i18n="featuredEyebrow">01 / 精选画家</p><h2 id="featuredTitle" data-i18n="featuredTitle">从这里开始认识</h2></div><p id="featuredDescription" class="section-caption" data-i18n="featuredDaily">每日从已收录画家中轮换，发现新的名字。</p></div>
+          <div class="section-heading"><div><p class="eyebrow" data-i18n="featuredEyebrow">おすすめ作家</p><h2 id="featuredTitle" data-i18n="featuredTitle">ここから出会う</h2></div><p id="featuredDescription" class="section-caption" data-i18n="featuredDaily">収録作家から日替わりでご紹介します。</p></div>
           <div id="featuredGrid" class="discovery-grid" aria-busy="true"></div>
         </section>
 
         <section id="all-artists" class="index-section directory-section" aria-labelledby="directoryTitle">
-          <div class="section-heading"><div><p class="eyebrow" data-i18n="directoryEyebrow">02 / 全部画家</p><h2 id="directoryTitle" tabindex="-1" data-i18n="directoryTitle">画家目录</h2></div><div class="view-switch" role="group" data-i18n-aria-label="viewLabel" aria-label="查看方式"><button id="gridViewButton" type="button" aria-pressed="true"><span aria-hidden="true">▦</span> <span data-i18n="gridView">网格</span></button><button id="listViewButton" type="button" aria-pressed="false"><span aria-hidden="true">☷</span> <span data-i18n="listView">列表</span></button></div></div>
+          <div class="section-heading"><div><p class="eyebrow" data-i18n="directoryEyebrow">すべての作家</p><h2 id="directoryTitle" tabindex="-1" data-i18n="directoryTitle">作家一覧</h2></div><div class="view-switch" role="group" data-i18n-aria-label="viewLabel" aria-label="表示形式"><button id="gridViewButton" type="button" aria-pressed="true"><span aria-hidden="true">▦</span> <span data-i18n="gridView">グリッド</span></button><button id="listViewButton" type="button" aria-pressed="false"><span aria-hidden="true">☷</span> <span data-i18n="listView">リスト</span></button></div></div>
           <div class="directory-controls">
-            <label class="directory-search"><span class="sr-only" data-i18n="directorySearch">在全部画家中搜索</span><span class="search-icon" aria-hidden="true"></span><input id="searchInput" type="search" data-i18n-placeholder="indexSearchPlaceholder" /></label>
-            <button id="mobileFilterToggle" class="index-filter-toggle" type="button" aria-expanded="false" aria-controls="sidebarControls"><span data-i18n="filterToggle">筛选目录</span><b aria-hidden="true">+</b></button>
+            <label class="directory-search"><span class="sr-only" data-i18n="directorySearch">作家一覧を検索</span><span class="search-icon" aria-hidden="true"></span><input id="searchInput" type="search" data-i18n-placeholder="indexSearchPlaceholder" /></label>
+            <button id="mobileFilterToggle" class="index-filter-toggle" type="button" aria-expanded="false" aria-controls="sidebarControls"><span data-i18n="filterToggle">一覧を絞り込む</span><b aria-hidden="true">+</b></button>
             <div id="sidebarControls" class="index-filters">
               <label><span data-i18n="regionFilter">地区</span><select id="regionFilters"></select></label>
               <label><span data-i18n="schoolFilter">学校 / 背景</span><select id="schoolFilters"></select></label>
               <label><span data-i18n="tagFilter">标签</span><select id="tagFilters"></select></label>
             </div>
           </div>
-          <div class="results-toolbar"><p id="resultText" role="status"></p><div class="directory-actions"><button id="favoritesToggle" class="text-button" type="button" aria-pressed="false" hidden data-i18n="myFavorites">我的收藏</button><button id="shareSearchButton" class="text-button" type="button" data-i18n="shareSearch">分享当前筛选</button><button id="resetButton" class="text-button" type="button" data-i18n="resetButton">重置筛选</button></div></div>
-          <p id="favoritesScope" class="section-caption" data-i18n="favoritesScope" hidden>当前账号 · 当前浏览器</p>
-          <div id="activeFilters" class="active-filters" aria-label="当前筛选条件" data-i18n-aria-label="activeFiltersLabel" hidden></div>
+          <div class="results-toolbar"><p id="resultText" role="status"></p><div class="directory-actions"><button id="favoritesToggle" class="text-button" type="button" aria-pressed="false" hidden data-i18n="myFavorites">お気に入り</button><button id="shareSearchButton" class="text-button" type="button" data-i18n="shareSearch">絞り込み条件を共有</button><button id="resetButton" class="text-button" type="button" data-i18n="resetButton">条件をリセット</button></div></div>
+          <p id="favoritesScope" class="section-caption" data-i18n="favoritesScope" hidden>このアカウント · このブラウザ</p>
+          <div id="activeFilters" class="active-filters" aria-label="選択中の条件" data-i18n-aria-label="activeFiltersLabel" hidden></div>
           <div id="artistGrid" class="artist-grid" aria-busy="true"></div>
-          <div class="load-more-row"><button id="loadMoreButton" class="outline-button" type="button" hidden data-i18n="loadMore">查看更多画家</button><p id="shownCount" class="section-caption"></p></div>
+          <div class="load-more-row"><button id="loadMoreButton" class="outline-button" type="button" hidden data-i18n="loadMore">もっと見る</button><p id="shownCount" class="section-caption"></p></div>
         </section>
 
         <section id="recent" class="index-section" aria-labelledby="recentTitle">
-          <div class="section-heading"><div><p class="eyebrow" data-i18n="recentEyebrow">03 / 最近加入</p><h2 id="recentTitle" data-i18n="recentTitle">最近加入</h2></div><p class="section-caption" data-i18n="recentDescription">新的发现，持续收录。</p></div>
+          <div class="section-heading"><div><p class="eyebrow" data-i18n="recentEyebrow">最近追加された作家</p><h2 id="recentTitle" data-i18n="recentTitle">最近追加された作家</h2></div><p class="section-caption" data-i18n="recentDescription">新たな発見を、少しずつ。</p></div>
           <div id="recentGrid" class="recent-grid" aria-busy="true"></div>
         </section>
 
-        <section id="nihonga-now" class="index-section news-home-section" aria-labelledby="nihongaNowTitle">
-          <div class="section-heading news-home-heading"><div><p class="eyebrow news-home-eyebrow"><span class="news-live-mark" aria-hidden="true"></span><span data-i18n="newsHomeEyebrow">04 / NIHONGA NOW</span></p><h2 id="nihongaNowTitle" data-i18n="newsHomeTitle">日本画ニュース</h2><p class="news-home-lede" data-i18n="newsHomeLede">展覧会、公募、作家の動きを、いち早く。</p></div><a class="news-home-more" href="/news"><span data-i18n="newsHomeMore">すべて見る</span><span aria-hidden="true">→</span></a></div>
-          <div id="newsHomeList" class="news-home-list" aria-live="polite" aria-busy="true"></div>
-        </section>
-
         <section id="random-discovery" class="random-section" aria-labelledby="randomTitle">
-          <div class="random-copy"><p class="eyebrow" data-i18n="randomEyebrow">随机发现</p><h2 id="randomTitle" data-i18n="randomTitle">偶然の出会い</h2><p data-i18n="randomDescription">不必知道名字，让下一位画家带来灵感。</p><button id="randomButton" class="primary-button" type="button" disabled><span data-i18n="randomButton">随机发现一位画家</span><span aria-hidden="true">↗</span></button></div>
+          <div class="random-copy"><p class="eyebrow" data-i18n="randomEyebrow">偶然の出会い</p><h2 id="randomTitle" data-i18n="randomTitle">偶然の出会い</h2><p data-i18n="randomDescription">名前を知らなくても。次の作家から、ひらめきを。</p><button id="randomButton" class="primary-button" type="button" disabled><span data-i18n="randomButton">作家をランダムに探す</span><span aria-hidden="true">↗</span></button></div>
           <div id="randomArtist" class="random-result" aria-live="polite"><span class="random-mark" aria-hidden="true">巡</span><p data-i18n="randomInvitation">在熟悉的视线之外。</p></div>
         </section>
 
-        <section class="index-activity" aria-label="索引动态" data-i18n-aria-label="activityLabel">
-          <div class="ranking-panel"><div><p class="eyebrow" data-i18n="rankingEyebrow">今日查看排行</p><h2 data-i18n="rankingTitle">今日查看量排名</h2><p class="section-caption" data-i18n="rankingContext">今日站内 Instagram 链接查看记录。</p></div><div id="rankingList" class="ranking-list"></div><button id="rankingToggleButton" class="ranking-toggle" type="button" hidden data-i18n="rankingToggle">展开前 10 名</button></div>
-          <div class="index-statistics"><p class="eyebrow" data-i18n="statisticsEyebrow">索引数据</p><section id="statistics" class="stats" aria-label="数据统计" data-i18n-aria-label="statisticsLabel" aria-busy="true"><div><strong id="artistCount">—</strong><span data-i18n="statArtists">画家</span></div><div><strong id="regionCount">—</strong><span data-i18n="statRegions">地区</span></div><div><strong id="schoolCount">—</strong><span data-i18n="statSchools">学校 / 背景</span></div><div><strong id="styleCount">—</strong><span data-i18n="statStyles">标签</span></div></section><p id="syncStatus" class="sync-pill" data-i18n="heroSync" role="status">等待同步</p></div>
+        <section class="index-activity" aria-label="索引の動き" data-i18n-aria-label="activityLabel">
+          <div class="ranking-panel"><div><p class="eyebrow" data-i18n="rankingEyebrow">本日の閲覧ランキング</p><h2 data-i18n="rankingTitle">本日の閲覧ランキング</h2><p class="section-caption" data-i18n="rankingContext">本日の作家情報の閲覧記録。</p></div><div id="rankingList" class="ranking-list"></div><button id="rankingToggleButton" class="ranking-toggle" type="button" hidden data-i18n="rankingToggle">上位10名を表示</button></div>
+           <div class="index-statistics"><p class="eyebrow" data-i18n="statisticsEyebrow">数字で見る索引</p><section id="statistics" class="stats" aria-label="収録データ" data-i18n-aria-label="statisticsLabel" aria-busy="true"><div><strong id="artistCount">—</strong><span data-i18n="statArtists">作家</span></div><div><strong id="regionCount">—</strong><span data-i18n="statRegions">地域</span></div><div><strong id="schoolCount">—</strong><span data-i18n="statSchools">学校 / 背景</span></div><div><strong id="styleCount">—</strong><span data-i18n="statStyles">タグ</span></div></section><p id="syncStatus" class="sync-pill" data-i18n="heroSync" role="status">同期を待っています</p></div>
         </section>
 
-        <section id="about" class="about-section"><p class="eyebrow" data-i18n="aboutEyebrow">HUI 的话</p><h2 data-i18n="aboutTitle">从一次发现，到下一次相遇。</h2><p data-i18n="aboutDescription">这是由 HUI 从 Instagram 发现、筛选并持续整理的日本画家索引。这里帮助你寻找和认识作家，Instagram 则是欣赏完整作品的下一站。</p></section>
+        <section id="about" class="about-section"><p class="eyebrow" data-i18n="aboutEyebrow">HUI より</p><h2 data-i18n="aboutTitle">ひとつの発見から、次の出会いへ。</h2><p data-i18n="aboutDescription">大学・展覧会・公募・画廊・公式サイト・SNS など複数の公開情報源から、日本画作家の情報を収集・整理しています。</p></section>
         <section id="site-log" class="site-log-section" aria-labelledby="siteLogTitle">
-          <div class="site-log-heading"><div><p class="eyebrow" data-i18n="logEyebrow">HUI LOG</p><h2 id="siteLogTitle" data-i18n="logTitle">更新日志</h2></div><p class="section-caption" data-i18n="logDescription">记录画家索引如何一点点生长。</p></div>
+          <div class="site-log-heading"><div><p class="eyebrow" data-i18n="logEyebrow">HUI LOG</p><h2 id="siteLogTitle" data-i18n="logTitle">更新日志</h2></div><p class="section-caption" data-i18n="logDescription">记录 NIHONGA INDEX 如何一点点生长。</p></div>
           <ol class="site-log-list">
             <li class="site-log-entry"><time datetime="2026-09-01">2026.09.01</time><div><strong data-i18n="logEntryOneTitle">Nihonga Now を公開</strong><p data-i18n="logEntryOneText">展覧会、公募、作家動向をまとめる日本画ニュース欄を追加。</p></div></li>
-            <li class="site-log-entry"><time datetime="2026-08-31">2026.08.31</time><div><strong data-i18n="logEntryTwoTitle">最近追加された作家を整理</strong><p data-i18n="logEntryTwoText">加入日がある作家は新しい順に、未設定の場合も案内を保って表示。</p></div></li>
-            <li class="site-log-entry"><time datetime="2026-08-30">2026.08.30</time><div><strong data-i18n="logEntryThreeTitle">検索を入口に</strong><p data-i18n="logEntryThreeText">作家名、学校、Instagram、キーワードから日本画家を探せます。</p></div></li>
+            <li class="site-log-entry"><time datetime="2026-08-31">2026.08.31</time><div><strong data-i18n="logEntryTwoTitle">最近追加された作家を整理</strong><p data-i18n="logEntryTwoText">追加日がある作家は新しい順に。未設定でも案内を保って表示。</p></div></li>
+            <li class="site-log-entry"><time datetime="2026-08-30">2026.08.30</time><div><strong data-i18n="logEntryThreeTitle">検索を入口に</strong><p data-i18n="logEntryThreeText">作家名、学校、地域、キーワードから日本画作家を探せます。</p></div></li>
           </ol>
         </section>
-        <section id="contribute" class="contribute-section" aria-labelledby="contributeTitle"><div class="section-heading"><div><p class="eyebrow" data-i18n="contributeEyebrow">参与共建</p><h2 id="contributeTitle" data-i18n="contributeTitle">一起，让索引更好。</h2></div><p class="section-caption contribute-access-note" data-i18n="memberOnlyContribution">推荐画家和提交信息纠错仅对已登录用户开放。</p></div>
+        <section id="contribute" class="contribute-section" aria-labelledby="contributeTitle"><div class="section-heading"><div><p class="eyebrow" data-i18n="contributeEyebrow">情報を寄せる</p><h2 id="contributeTitle" data-i18n="contributeTitle">索引を、ともに育てる。</h2></div><div><p class="section-caption contribute-access-note" data-i18n="memberOnlyContribution">作家の推薦と情報の修正報告はログイン後に利用できます。</p><a class="contribute-page-link" href="/submit-artist">作家掲載申請 →</a></div></div>
         <details id="recommend-panel" class="submission-panel">
           <summary>
             <span>
-              <p class="eyebrow" data-i18n="submitEyebrow">推荐画家</p>
-              <h3 data-i18n="submitTitle">添加画家</h3>
-              <small data-i18n="submitDesc">发现想推荐的日本画画家，可以提交 Instagram 主页给我整理。</small>
+              <p class="eyebrow" data-i18n="submitEyebrow">作家を推薦</p>
+              <h3 data-i18n="submitTitle">作家情報を提供</h3>
+            <small data-i18n="submitDesc">公開情報源を添えて、日本画作家の情報をお寄せください。</small>
             </span>
-            <b class="submission-expand" data-i18n="submitExpand">展开</b>
+            <b class="submission-expand" data-i18n="submitExpand">開く</b>
           </summary>
-          <div class="member-only-notice" data-member-only-notice hidden><p data-i18n="memberOnlyContribution">推荐画家和提交信息纠错仅对已登录用户开放。</p><button type="button" class="outline-button" data-require-member data-i18n="signInToContribute">登录后继续</button></div>
+          <div class="member-only-notice" data-member-only-notice hidden><p data-i18n="memberOnlyContribution">作家の推薦と情報の修正報告はログイン後に利用できます。</p><button type="button" class="outline-button" data-require-member data-i18n="signInToContribute">ログインして続ける</button></div>
           <form id="submissionForm" class="submission-form" data-member-only-form>
-            <label><span data-i18n="submitName">画家名称</span><input name="name" required data-i18n-placeholder="submitNamePlaceholder" /></label>
-            <label><span data-i18n="submitIG">Instagram 链接或账号</span><input name="instagram" required data-i18n-placeholder="submitIGPlaceholder" /></label>
+            <label><span data-i18n="submitName">作家名</span><input name="name" required data-i18n-placeholder="submitNamePlaceholder" /></label>
+            <label><span data-i18n="submitIG">Instagram リンクまたはアカウント</span><input name="instagram" required data-i18n-placeholder="submitIGPlaceholder" /></label>
             <label><span data-i18n="submitSchool">学校 / 背景</span><input name="school" data-i18n-placeholder="submitSchoolPlaceholder" /></label>
-            <label><span data-i18n="submitNote">备注</span><textarea name="note" rows="4" data-i18n-placeholder="submitNotePlaceholder"></textarea></label>
-            <button type="submit" data-i18n="submitButton">提交审核</button>
+            <label><span data-i18n="submitNote">補足</span><textarea name="note" rows="4" data-i18n-placeholder="submitNotePlaceholder"></textarea></label>
+            <button type="submit" data-i18n="submitButton">確認を依頼</button>
             <p id="submissionMessage" class="message" role="status"></p>
           </form>
         </details>
         <details id="correction-panel" class="submission-panel">
           <summary>
             <span>
-              <p class="eyebrow" data-i18n="correctEyebrow">信息纠错</p>
-              <h3 data-i18n="correctTitle">报告修改</h3>
-              <small data-i18n="correctDesc">发现画家信息有误？选择画家并描述需要修改的内容。</small>
+              <p class="eyebrow" data-i18n="correctEyebrow">情報の修正</p>
+              <h3 data-i18n="correctTitle">修正を報告</h3>
+              <small data-i18n="correctDesc">情報に誤りがありますか？修正項目と正しい内容、参考 URL をお知らせください。</small>
             </span>
-            <b class="submission-expand" data-i18n="correctExpand">展开</b>
+            <b class="submission-expand" data-i18n="correctExpand">開く</b>
           </summary>
-          <div class="member-only-notice" data-member-only-notice hidden><p data-i18n="memberOnlyContribution">推荐画家和提交信息纠错仅对已登录用户开放。</p><button type="button" class="outline-button" data-require-member data-i18n="signInToContribute">登录后继续</button></div>
+          <div class="member-only-notice" data-member-only-notice hidden><p data-i18n="memberOnlyContribution">作家の推薦と情報の修正報告はログイン後に利用できます。</p><button type="button" class="outline-button" data-require-member data-i18n="signInToContribute">ログインして続ける</button></div>
           <form id="correctionForm" class="submission-form" data-member-only-form>
-            <label><span data-i18n="correctSelect">选择画家</span><select name="artistId" required><option value="" data-i18n="correctSelectDefault">请选择画家</option></select></label>
-            <label><span data-i18n="correctNote">修改说明</span><textarea name="note" rows="4" required data-i18n-placeholder="correctNotePlaceholder"></textarea></label>
-            <button type="submit" data-i18n="correctButton">提交报告</button>
+            <label><span data-i18n="correctSelect">作家を選択</span><select name="artistId" required><option value="" data-i18n="correctSelectDefault">作家を選んでください</option></select></label>
+            <label><span data-i18n="correctField">修正する項目</span><input name="field" maxlength="80" placeholder="学校・地域・プロフィールなど" /></label>
+            <label><span data-i18n="correctValue">修正後の内容</span><input name="correctedValue" maxlength="1000" placeholder="正しい内容をご記入ください" /></label>
+            <label><span data-i18n="correctReference">参考 URL</span><input name="referenceUrl" type="url" maxlength="2048" placeholder="https://..." /></label>
+            <label><span data-i18n="correctContact">連絡先（任意）</span><input name="contact" maxlength="240" placeholder="メールアドレスなど" /></label>
+            <label class="correction-note-field"><span data-i18n="correctNote">修正内容</span><textarea name="note" rows="4" required data-i18n-placeholder="correctNotePlaceholder"></textarea></label>
+            <button type="submit" data-i18n="correctButton">修正を報告</button>
             <p id="correctionMessage" class="message" role="status"></p>
           </form>
         </details>
         </section>
-        <footer class="index-footer"><a class="footer-brand" href="#home">HUI STUDIO<small data-i18n="indexName">画家索引</small></a><p data-i18n="footerText">由 CHEN JUNHUI 收集整理，仅供学习、研究与个人鉴赏使用。</p><a href="#home" class="back-top" data-i18n="backToTop">返回顶部 ↑</a></footer>
+        <footer class="index-footer"><a class="footer-brand" href="#home">NIHONGA INDEX<small data-i18n="indexName">日本画作家インデックス</small></a><p data-i18n="footerText">HUI STUDIO が運営・管理。複数の公開情報源を整理しています。</p><a href="#home" class="back-top" data-i18n="backToTop">ページ上部へ ↑</a></footer>
       </main>
     </div>
 
     <p id="experienceStatus" class="experience-status" role="status"></p>
     <dialog id="accountDialog" class="index-dialog account-dialog" aria-labelledby="accountTitle">
-      <div class="dialog-topline"><p class="eyebrow" id="accountBadge">游客</p><button type="button" data-close-dialog class="dialog-close" data-i18n-aria-label="closeDialog" aria-label="关闭">×</button></div>
-      <h2 id="accountTitle" data-i18n="accountTitle">你的浏览空间</h2><p id="accountName" class="account-name"></p><p id="accountDescription" class="account-description"></p>
-      <div id="guestAccountActions" class="account-actions"><button id="accountSignIn" class="primary-button" type="button" data-i18n="signInAction">登录账号</button><button id="accountRegister" class="outline-button" type="button" data-i18n="registerAction">创建账号</button><button type="button" data-close-dialog class="text-button" data-i18n="keepBrowsing">继续浏览</button></div>
-      <div id="memberAccountActions" class="account-actions" hidden><button id="accountFavorites" class="primary-button" type="button" data-i18n="myFavorites">我的收藏</button><button id="logoutButton" class="outline-button" type="button" data-i18n="logoutButton">退出登录</button></div>
+      <div class="dialog-topline"><p class="eyebrow" id="accountBadge">ゲスト</p><button type="button" data-close-dialog class="dialog-close" data-i18n-aria-label="closeDialog" aria-label="閉じる">×</button></div>
+      <h2 id="accountTitle" data-i18n="accountTitle">あなたの閲覧スペース</h2><p id="accountName" class="account-name"></p><p id="accountDescription" class="account-description"></p>
+      <div id="guestAccountActions" class="account-actions"><button id="accountSignIn" class="primary-button" type="button" data-i18n="signInAction">ログイン</button><button id="accountRegister" class="outline-button" type="button" data-i18n="registerAction">アカウント作成</button><button type="button" data-close-dialog class="text-button" data-i18n="keepBrowsing">閲覧を続ける</button></div>
+      <div id="memberAccountActions" class="account-actions" hidden><button id="accountFavorites" class="primary-button" type="button" data-i18n="myFavorites">お気に入り</button><button id="logoutButton" class="outline-button" type="button" data-i18n="logoutButton">ログアウト</button></div>
       <div data-access-comparison></div><p class="account-scope" data-i18n="accountScope"></p><p class="account-scope" data-i18n="progressScope"></p>
     </dialog>
-    <dialog id="shareDialog" class="index-dialog share-dialog" aria-labelledby="shareTitle"><div class="dialog-topline"><h2 id="shareTitle" data-i18n="shareTitle">分享这次发现</h2><button type="button" data-close-dialog class="dialog-close" data-i18n-aria-label="closeDialog" aria-label="关闭">×</button></div><label for="shareLinkInput" data-i18n="shareLinkLabel">分享链接</label><input id="shareLinkInput" readonly type="url" /><button id="copyLinkButton" class="primary-button" type="button" data-i18n="copyLink">复制链接</button><p id="shareStatus" role="status"></p><p class="account-scope" data-i18n="shareHelp"></p><p id="localShareHelp" class="account-scope" data-i18n="localShareHelp" hidden></p></dialog>
-    <dialog id="artistDialog" class="index-dialog" aria-labelledby="artistDialogTitle"><div class="dialog-topline"><p class="eyebrow" data-i18n="artistDetailEyebrow">画家 / 日本画索引</p><button type="button" data-close-dialog class="dialog-close" data-i18n-aria-label="closeDialog" aria-label="关闭">×</button></div><div id="artistDetail"></div><p id="artistActionStatus" role="status"></p></dialog>
-    <dialog id="aiFinderDialog" class="index-dialog finder-dialog" aria-labelledby="finderTitle"><div class="dialog-topline"><p class="eyebrow" data-i18n="finderEyebrow">AI 画家发现助手</p><button type="button" data-close-dialog class="dialog-close" data-i18n-aria-label="closeDialog" aria-label="关闭">×</button></div><span class="coming-soon-label" data-i18n="comingSoon">准备中</span><h2 id="finderTitle" data-i18n="finderTitle">你想寻找怎样的日本画家？</h2><p class="finder-description" data-i18n="finderDescription">未来，你可以描述题材与氛围，从本站收录的真实画家中寻找灵感。</p><form id="aiFinderForm"><label for="finderInput" data-i18n="finderInputLabel">描述你的想法</label><textarea id="finderInput" maxlength="1000" rows="4" data-i18n-placeholder="finderPlaceholder"></textarea><div id="finderPrompts" class="finder-prompts"></div><button class="primary-button" type="submit"><span data-i18n="finderSend">查看准备进度</span><span aria-hidden="true">↗</span></button></form><p id="finderStatus" role="status"></p><p class="finder-privacy" data-i18n="finderPrivacy">当前仅为界面预览。输入不会发送，不连接 AI 服务，也不会产生费用。</p></dialog>
+    <dialog id="shareDialog" class="index-dialog share-dialog" aria-labelledby="shareTitle"><div class="dialog-topline"><h2 id="shareTitle" data-i18n="shareTitle">出会いを共有する</h2><button type="button" data-close-dialog class="dialog-close" data-i18n-aria-label="closeDialog" aria-label="閉じる">×</button></div><label for="shareLinkInput" data-i18n="shareLinkLabel">共有リンク</label><input id="shareLinkInput" readonly type="url" /><button id="copyLinkButton" class="primary-button" type="button" data-i18n="copyLink">リンクをコピー</button><p id="shareStatus" role="status"></p><p class="account-scope" data-i18n="shareHelp"></p><p id="localShareHelp" class="account-scope" data-i18n="localShareHelp" hidden></p></dialog>
+    <dialog id="artistDialog" class="index-dialog" aria-labelledby="artistDialogTitle"><div class="dialog-topline"><p class="eyebrow" data-i18n="artistDetailEyebrow">作家 / NIHONGA INDEX</p><button type="button" data-close-dialog class="dialog-close" data-i18n-aria-label="closeDialog" aria-label="閉じる">×</button></div><div id="artistDetail"></div><p id="artistActionStatus" role="status"></p></dialog>
+    <dialog id="aiFinderDialog" class="index-dialog finder-dialog" aria-labelledby="finderTitle" hidden aria-hidden="true"><div class="dialog-topline"><p class="eyebrow" data-i18n="finderEyebrow">AI 日本画作家ナビ</p><button type="button" data-close-dialog class="dialog-close" data-i18n-aria-label="closeDialog" aria-label="閉じる">×</button></div><span class="coming-soon-label" data-i18n="comingSoon">準備中</span><h2 id="finderTitle" data-i18n="finderTitle">どんな日本画作家を探していますか？</h2><p class="finder-description" data-i18n="finderDescription">題材や雰囲気を言葉に。今後、収録された作家からご提案します。</p><form id="aiFinderForm"><label for="finderInput" data-i18n="finderInputLabel">探したい作家について</label><textarea id="finderInput" maxlength="1000" rows="4" data-i18n-placeholder="finderPlaceholder"></textarea><div id="finderPrompts" class="finder-prompts"></div><button class="primary-button" type="submit"><span data-i18n="finderSend">作家を探す</span><span aria-hidden="true">↗</span></button></form><p id="finderStatus" role="status"></p><p class="finder-privacy" data-i18n="finderPrivacy">現在は UI プレビューです。入力は送信されません。</p></dialog>
     <dialog id="announcementDialog" class="announcement-dialog" aria-labelledby="announcementTitle" aria-describedby="announcementSummary">
-      <div class="announcement-topline"><p class="announcement-eyebrow" data-i18n="announcementEyebrow">上线公告 · 2026.09.01</p><span class="announcement-status" aria-hidden="true">NEW</span></div>
-      <h2 id="announcementTitle" data-i18n="announcementTitle">本次更新了什么？</h2>
-      <p id="announcementSummary" class="announcement-summary" data-i18n="announcementSummary">日本画画家索引现已上线新版本，以下是这次可以直接使用的内容。</p>
+      <div class="announcement-topline"><p class="announcement-eyebrow" data-i18n="announcementEyebrow">更新のお知らせ · 2026.09.01</p><span class="announcement-status" aria-hidden="true">NEW</span></div>
+      <h2 id="announcementTitle" data-i18n="announcementTitle">今回の更新内容</h2>
+      <p id="announcementSummary" class="announcement-summary" data-i18n="announcementSummary">NIHONGA INDEX に新しい機能を追加しました。</p>
       <ul class="announcement-list">
-        <li><strong data-i18n="announcementItemNewsTitle">Nihonga Now 日本画新闻</strong><p data-i18n="announcementItemNewsText">新增展览、公募和画家动态栏目，首页可预览，进入新闻页可查看来源链接。</p></li>
-        <li><strong data-i18n="announcementItemDirectoryTitle">画家目录扩充与整理</strong><p data-i18n="announcementItemDirectoryText">上线最新收录的画家资料，支持按名称、学校、地区和标签搜索筛选。</p></li>
-        <li><strong data-i18n="announcementItemAccountTitle">访客与账号体验</strong><p data-i18n="announcementItemAccountText">可直接访客浏览；登录后可保存收藏、推荐画家和提交纠错。</p></li>
-        <li><strong data-i18n="announcementItemReliabilityTitle">同步与排行改进</strong><p data-i18n="announcementItemReliabilityText">接入 Supabase 数据同步与点击排行，更新会在刷新后生效。</p></li>
+        <li><strong data-i18n="announcementItemNewsTitle">NIHONGA NOW 日本画ニュース</strong><p data-i18n="announcementItemNewsText">展覧会、公募、作家動向をまとめ、ホームから最新情報を確認できます。</p></li>
+        <li><strong data-i18n="announcementItemDirectoryTitle">作家索引を拡充・整理</strong><p data-i18n="announcementItemDirectoryText">新しく収録した作家を、名前・学校・地域・タグから検索できます。</p></li>
+        <li><strong data-i18n="announcementItemAccountTitle">ゲストとアカウント</strong><p data-i18n="announcementItemAccountText">ゲストのまま閲覧できます。ログインするとお気に入り、作家推薦、修正報告を利用できます。</p></li>
+        <li><strong data-i18n="announcementItemReliabilityTitle">同期とランキングを改善</strong><p data-i18n="announcementItemReliabilityText">データ同期と閲覧ランキングを接続。ページを更新すると変更が反映されます。</p></li>
       </ul>
-      <div class="announcement-footer"><time datetime="2026-09-01" data-i18n="announcementDateLabel">2026 年 9 月 1 日</time><button id="announcementAcknowledgeButton" class="announcement-acknowledge" type="button" data-announcement-acknowledge data-i18n="announcementAcknowledge">我知道了，继续浏览</button></div>
+      <div class="announcement-footer"><time datetime="2026-09-01" data-i18n="announcementDateLabel">2026年9月1日</time><button id="announcementAcknowledgeButton" class="announcement-acknowledge" type="button" data-announcement-acknowledge data-i18n="announcementAcknowledge">確認して閲覧を続ける</button></div>
     </dialog>
     <script src="artist-editorial.js?v=1"></script>
     <script src="artist-vocabulary.js?v=1"></script>
@@ -260,8 +267,8 @@
     <script src="ai-finder-service.js?v=1"></script>
     <script src="index-account.js?v=2"></script>
     <script src="index-ui.js?v=4"></script>
-    <script src="news-data.js?v=1"></script>
-    <script src="news-home.js?v=3"></script>
+    <script src="news-data.js?v=2"></script>
+    <script src="news-home.js?v=4"></script>
     <script src="announcement.js?v=1"></script>
     <script src="app.js?v=8"></script>
   </body>

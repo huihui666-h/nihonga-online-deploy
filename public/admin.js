@@ -1,9 +1,10 @@
-const ADMIN_KEY = "nihongaAdminPassword";
-
-let adminPassword = localStorage.getItem(ADMIN_KEY) || "";
+// Keep the administrator credential in page memory only. Persisting it in
+// localStorage would expose it to any script running in this origin.
+let adminPassword = "";
 let artists = [];
 let submissions = [];
 let rankings = [];
+let news = [];
 let users = [];
 let usersLoaded = false;
 let usersLoading = false;
@@ -31,6 +32,12 @@ const els = {
   rankingForm: document.querySelector("#rankingForm"),
   rankingAdminList: document.querySelector("#rankingAdminList"),
   correctionList: document.querySelector("#correctionList"),
+  newsAdminList: document.querySelector("#newsAdminList"),
+  newsForm: document.querySelector("#newsForm"),
+  newsIdInput: document.querySelector("#newsIdInput"),
+  newNewsButton: document.querySelector("#newNewsButton"),
+  deleteNewsButton: document.querySelector("#deleteNewsButton"),
+  newsMessage: document.querySelector("#newsMessage"),
   userList: document.querySelector("#userList"),
   userListStatus: document.querySelector("#userListStatus"),
   userSearchInput: document.querySelector("#userSearchInput"),
@@ -172,18 +179,21 @@ function detectFromProfile(text) {
 }
 
 async function loadAll() {
-  const [artistData, submissionData, rankingData] = await Promise.all([
+  const [artistData, submissionData, rankingData, newsData] = await Promise.all([
     api("/api/admin-artists"),
     api("/api/admin-submissions"),
-    api("/api/admin-rankings")
+    api("/api/admin-rankings"),
+    api("/api/admin-news")
   ]);
   artists = artistData.artists || [];
   submissions = submissionData.submissions || [];
   rankings = rankingData.rankings || [];
+  news = newsData.news || [];
   renderArtists();
   renderSubmissions();
   renderRankingTools();
   renderCorrections();
+  renderNewsAdmin();
 }
 
 async function loadUsers() {
@@ -404,7 +414,7 @@ function renderSubmissions() {
         <button data-action="toggle" class="secondary submission-toggle" type="button">${isExpanded ? "收起" : "展开"}</button>
       </div>
       <div class="submission-detail" ${isExpanded ? "" : "hidden"}>
-        <p><b>IG：</b><a href="${escapeHtml(item.instagram || "#")}" target="_blank" rel="noreferrer">${escapeHtml(item.instagram || "未填写")}</a></p>
+        <p><b>出典：</b><a href="${escapeHtml(safeHttpUrl(item.source_page || item.instagram) || "#")}" target="_blank" rel="noreferrer">${escapeHtml(item.source_page || item.instagram || "未填写")}</a></p>
         <p><b>账号：</b>${escapeHtml(item.handle || "自动识别待补")}</p>
         <p><b>备注：</b>${escapeHtml(item.note || "无备注")}</p>
         <div class="button-row">
@@ -468,6 +478,99 @@ function renderRankingTools() {
   });
 }
 
+const NEWS_CATEGORY_LABELS = {
+  exhibition: "展覧会", open_call: "公募", artist_news: "作家動向", museum: "美術館",
+  nihonga_news: "日本画新闻", new_artist: "新規作家", award: "受賞", selection: "入選", solo: "個展",
+  graduation: "卒展", university: "大学", gallery: "画廊"
+};
+
+function fillNewsForm(item = {}) {
+  if (!els.newsForm) return;
+  els.newsIdInput.value = item.id || "";
+  els.newsForm.elements.title.value = item.title || "";
+  els.newsForm.elements.category.value = item.category || "nihonga_news";
+  els.newsForm.elements.status.value = item.status || "candidate";
+  els.newsForm.elements.publishedAt.value = String(item.published_at || item.publishedAt || "").slice(0, 10);
+  els.newsForm.elements.startDate.value = String(item.start_date || item.startDate || "").slice(0, 10);
+  els.newsForm.elements.endDate.value = String(item.end_date || item.endDate || "").slice(0, 10);
+  els.newsForm.elements.sourceName.value = item.source_name || item.sourceName || "";
+  els.newsForm.elements.sourceUrl.value = item.source_url || item.sourceUrl || "";
+  els.newsForm.elements.venue.value = item.venue || "";
+  els.newsForm.elements.tags.value = Array.isArray(item.tags) ? item.tags.join("，") : (item.tags || "");
+  els.newsForm.elements.summary.value = item.summary || "";
+  els.newsForm.hidden = false;
+  els.newsMessage.textContent = "";
+}
+
+function readNewsForm() {
+  const form = els.newsForm;
+  return {
+    title: form.elements.title.value.trim(),
+    category: form.elements.category.value,
+    status: form.elements.status.value,
+    publishedAt: form.elements.publishedAt.value,
+    startDate: form.elements.startDate.value,
+    endDate: form.elements.endDate.value,
+    sourceName: form.elements.sourceName.value.trim(),
+    sourceUrl: form.elements.sourceUrl.value.trim(),
+    venue: form.elements.venue.value.trim(),
+    tags: form.elements.tags.value.split(/[,，、\n]/).map((value) => value.trim()).filter(Boolean),
+    summary: form.elements.summary.value.trim()
+  };
+}
+
+function renderNewsAdmin() {
+  if (!els.newsAdminList) return;
+  els.newsAdminList.replaceChildren();
+  if (!news.length) {
+    const empty = document.createElement("p");
+    empty.className = "helper-message";
+    empty.textContent = "暂无新闻记录。";
+    els.newsAdminList.append(empty);
+    return;
+  }
+  news.forEach((item) => {
+    const row = document.createElement("article");
+    row.className = `submission-row news-admin-row is-${escapeHtml(item.status || "candidate")}`;
+    const date = item.published_at || item.publishedAt || item.start_date || item.startDate || item.created_at || "";
+    row.innerHTML = `<div class="submission-summary"><div><strong>${escapeHtml(item.title || "无标题")}</strong><span>${escapeHtml(NEWS_CATEGORY_LABELS[item.category] || item.category || "日本画新闻")} · ${escapeHtml(item.status || "candidate")} · ${escapeHtml(String(date).slice(0, 10))}</span><span>${escapeHtml(item.source_name || item.sourceName || "出典未确认")}</span></div><div class="button-row"><button data-news-action="edit" type="button">编辑</button><button data-news-action="delete" class="danger" type="button">删除</button></div></div>`;
+    row.querySelector('[data-news-action="edit"]').addEventListener("click", () => fillNewsForm(item));
+    row.querySelector('[data-news-action="delete"]').addEventListener("click", () => deleteNews(item.id));
+    els.newsAdminList.append(row);
+  });
+}
+
+async function saveNews(event) {
+  event.preventDefault();
+  const id = els.newsIdInput.value.trim();
+  const payload = readNewsForm();
+  els.newsMessage.textContent = "保存中…";
+  els.newsMessage.classList.remove("is-error");
+  try {
+    const data = await api(id ? `/api/admin-news?id=${encodeURIComponent(id)}` : "/api/admin-news", { method: id ? "PATCH" : "POST", body: JSON.stringify(payload) });
+    const saved = data.news;
+    news = id ? news.map((item) => item.id === id ? saved : item) : [saved, ...news];
+    renderNewsAdmin();
+    els.newsMessage.textContent = "新闻已保存。";
+    if (!id) fillNewsForm(saved);
+    setMessage("NIHONGA NOW 新闻已更新，前台刷新后生效。");
+  } catch (error) {
+    els.newsMessage.textContent = error.message || "保存失败。";
+    els.newsMessage.classList.add("is-error");
+  }
+}
+
+async function deleteNews(id) {
+  if (!id || !confirm("确定删除这条新闻？此操作不可恢复。")) return;
+  try {
+    await api(`/api/admin-news?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    news = news.filter((item) => item.id !== id);
+    if (els.newsIdInput.value === id) { els.newsForm.reset(); els.newsIdInput.value = ""; els.newsForm.hidden = true; }
+    renderNewsAdmin();
+    setMessage("新闻已删除，sitemap 和前台会同步更新。");
+  } catch (error) { setMessage(error.message || "删除失败。", true); }
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -475,6 +578,15 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function safeHttpUrl(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    return /^https?:$/i.test(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
 }
 
 async function reviewSubmission(id, action) {
@@ -500,13 +612,12 @@ els.adminLoginButton.addEventListener("click", async () => {
     return;
   }
   try {
-    localStorage.setItem(ADMIN_KEY, adminPassword);
     await loadAll();
     els.adminLogin.hidden = true;
     els.adminPanel.hidden = false;
     setMessage("后台已连接。");
   } catch (error) {
-    localStorage.removeItem(ADMIN_KEY);
+    adminPassword = "";
     setMessage(error.message, true);
   }
 });
@@ -522,6 +633,10 @@ els.tabs.forEach((tab) => {
     }
   });
 });
+
+els.newNewsButton?.addEventListener("click", () => fillNewsForm({ status: "candidate", category: "nihonga_news" }));
+els.newsForm?.addEventListener("submit", saveNews);
+els.deleteNewsButton?.addEventListener("click", () => deleteNews(els.newsIdInput.value.trim()));
 
 els.detectButton.addEventListener("click", () => {
   const text = els.profileInput.value.trim();
@@ -646,9 +761,4 @@ function renderCorrections() {
     });
     els.correctionList.append(row);
   });
-}
-
-
-if (adminPassword) {
-  els.adminPasswordInput.value = adminPassword;
 }

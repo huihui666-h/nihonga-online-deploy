@@ -190,6 +190,13 @@
 .detail-source summary { cursor: pointer; }
 .detail-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin-top: 14px; }
 .detail-footer a, .detail-footer button { font-size: 11px; color: var(--muted); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 4px; }
+.detail-sources-popover { position: relative; font-size: 11px; color: var(--muted); }
+.detail-sources-popover summary { cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+.detail-sources-popover ul { position: absolute; z-index: 3; left: 0; bottom: calc(100% + 8px); min-width: 220px; margin: 0; padding: 10px 12px; list-style: none; background: var(--paper); border: 1px solid var(--line); box-shadow: 0 8px 22px rgba(20, 38, 28, .08); }
+.detail-sources-popover li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+.detail-sources-popover li:last-child { border-bottom: 0; }
+.detail-sources-popover li a { color: var(--ink); }
+.detail-sources-popover li small { color: var(--muted); }
 .coming-soon-label { font-size: 9px; letter-spacing: .1em; color: var(--pine); border: 1px solid #bdc7b4; padding: 5px 7px; }
 .finder-dialog h2 { font-size: 29px; line-height: 1.5; margin: 22px 0 15px; }
 .finder-description { font-size: 13px; color: var(--muted); line-height: 1.8; }
@@ -410,9 +417,10 @@
   }
   .index-nav {
     grid-column: 1 / -1;
-    width: calc(100% + 10vw);
-    margin: 0 -5vw;
-    padding: 2px 5vw;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 2px 0;
     flex-wrap: nowrap;
     justify-content: flex-start;
     gap: 22px;
@@ -465,3 +473,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) { .index-page .welcome-overlay.fade-out { transition: none; animation: none; } .skeleton-card span { animation: none; } }
+.contribute-page-link { display: inline-block; margin-top: 10px; color: var(--blue); font-size: 12px; font-weight: 800; text-decoration: none; border-bottom: 1px solid currentColor; }
+.contribute-page-link:hover { color: var(--red); }
+.artist-name-link { color: inherit; text-decoration: none; text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.artist-name-link:hover, .artist-name-link:focus-visible { color: var(--blue); text-decoration: underline; }
+.correction-note-field { grid-column: 1 / -1; }

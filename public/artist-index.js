@@ -22,6 +22,11 @@
     const handle = clean(artist.handle);
     return /^@?[a-z0-9_.]{1,30}$/i.test(handle) ? `https://www.instagram.com/${handle.replace(/^@/, "")}/` : "";
   };
+  const slug = (artist) => {
+    const source = clean(artist?.romanName || artist?.roman_name || artist?.name || artist?.handle || artist?.id || "artist").replace(/^@/, "");
+    const value = source.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return value.replace(/[^\p{Letter}\p{Number}]+/gu, "-").replace(/^-+|-+$/g, "").slice(0, 72) || `artist-${clean(artist?.id).slice(0, 12) || "profile"}`;
+  };
   const addedTime = (artist) => {
     // updatedAt is intentionally excluded: an edit is not a new addition.
     for (const value of [artist.addedAt, artist.createdAt, artist.created_at, artist.added_at]) {
@@ -59,7 +64,7 @@
     const byId = new Map(artists.filter((artist) => typeof artist.id === "string").map((artist) => [artist.id, artist]));
     return [...new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === "string") : [])].map((id) => byId.get(id)).filter(Boolean);
   };
-  const helpers = { clean, normalize, tags, safeUrl, instagram, addedTime, editorial, matches, featured, recent, random, resolveIds };
+  const helpers = { clean, normalize, tags, safeUrl, instagram, slug, addedTime, editorial, matches, featured, recent, random, resolveIds };
   if (typeof module !== "undefined" && module.exports) module.exports = helpers;
   else root.ArtistIndex = Object.freeze(helpers);
 })(typeof window !== "undefined" ? window : this);

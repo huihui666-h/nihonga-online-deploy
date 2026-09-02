@@ -9,6 +9,7 @@ const rows = [
   { id: "three", status: "published", category: "artist_news", publishedAt: "2026-09-03" },
   { id: "four", status: "published", category: "exhibition", publishedAt: "2026-09-04" },
   { id: "museum-old", status: "published", category: "museum", publishedAt: "2026-08-01", endDate: "2026-01-01" },
+  { id: "new-artist", status: "published", category: "new_artist", publishedAt: "2026-09-06" },
   { id: "draft", status: "candidate", category: "exhibition", publishedAt: "2026-09-05" }
 ];
 assert.deepEqual(NewsData.select([], { now }), [], "Homepage supports no news");
@@ -20,6 +21,9 @@ assert.deepEqual(NewsData.select(rows, { category: "artist_news", now }).map((it
 assert.equal(NewsData.active({ status: "published", endDate: "2026-09-01" }, now), true, "End dates remain active through the Tokyo calendar day");
 assert.equal(NewsData.active({ status: "published", endDate: "2026-08-31" }, now), false, "Past Tokyo dates are expired");
 assert.equal(NewsData.active({ status: "published", category: "museum", endDate: "2026-08-31" }, now), true, "Only exhibitions and open calls expire by end date");
+assert.equal(NewsData.active({ status: "published", category: "new_artist", publishedAt: "2026-09-06" }, now), false, "Directory additions are not automatically treated as news");
+assert.equal(NewsData.cleanTitle("2026-09-01 日本画展"), "日本画展", "A duplicated leading date is removed from a news title");
+assert.equal(NewsData.displayDate("2026-9-1"), "2026.09.01", "News dates use one consistent display format");
 
 process.env.SUPABASE_URL = "https://example.supabase.co";
 process.env.SUPABASE_SERVICE_ROLE_KEY = "test-only-placeholder";
@@ -38,6 +42,7 @@ const handler = require("../api/artists.js");
   assert.equal(body.news.length, 1);
   assert.deepEqual(body.news[0].relatedArtists, [{ id: "artist-1", name: "山田 花子", romanName: "Hanako Yamada" }]);
   assert.ok(requested[0].includes("status=eq.published"));
+  assert.ok(requested[0].includes("category=neq.new_artist"));
   assert.ok(requested[0].includes("category.not.in.(exhibition,open_call)"));
   assert.ok(requested[0].includes("end_date.gte."));
   assert.ok(requested[0].includes("category=eq.exhibition"));

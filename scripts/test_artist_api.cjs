@@ -9,6 +9,8 @@ global.fetch = async (url, options) => {
   return { ok: true, text: async () => JSON.stringify(responseRows) };
 };
 const handler = require("../api/artists.js");
+const { artistSources } = require("../api/_artist-utils.js");
+const { renderArtistPage } = require("../api/_artist-page.js");
 async function request() {
   let payload;
   const res = { setHeader() {}, end(body) { payload = JSON.parse(body); } };
@@ -31,5 +33,12 @@ async function request() {
   const legacy = await request();
   assert.deepEqual(legacy.styles, []);
   assert.ok(!("createdAt" in legacy));
+  const sourceList = artistSources({ instagram: "https://www.instagram.com/test/", source_url: "https://example.org/profile", link_type: "website" });
+  assert.deepEqual(sourceList.map((source) => source.name), ["公式サイト", "Instagram"]);
+  const html = renderArtistPage({ ...row, sources: [{ source_name: "東京藝術大学", source_type: "大学", source_url: "https://example.org/source" }] }, "test-artist", new Map([[row.id, "test-artist"]]));
+  assert.match(html, /<h1>Test record<\/h1>/, "Initial artist HTML contains the artist name");
+  assert.match(html, /東京藝術大学/, "Initial artist HTML contains school and source information");
+  assert.match(html, /<link rel="canonical" href="https:\/\/nihonga-online-deploy\.vercel\.app\/artists\/test-artist">/);
+  assert.match(html, /application\/ld\+json/, "Artist detail includes structured data");
   console.log("Artist API tests passed: same query, unchanged legacy fields, optional metadata and missing-field compatibility.");
 })().catch((error) => { console.error(error); process.exitCode = 1; });

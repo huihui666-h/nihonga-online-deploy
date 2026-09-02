@@ -246,6 +246,7 @@ async function loadArtists() {
   try {
     const data = await api("/api/artists");
     state.artists = Array.isArray(data.artists) ? data.artists : [];
+    window.dispatchEvent(new CustomEvent("nihonga:artists-loaded", { detail: state.artists }));
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(state.artists)); } catch { /* Storage is optional. */ }
     setSync("synced", "ok");
   } catch (error) {
@@ -326,7 +327,8 @@ function renderRankings() {
 
   visibleRankings.forEach((item, index) => {
     const link = document.createElement("a");
-    link.href = item.instagram || "#";
+    const rankingUrl = safeInstagramUrl(item.instagram) || safeInstagramUrl(item.handle);
+    link.href = rankingUrl || "#";
     link.target = "_blank";
     link.rel = "noreferrer";
     link.className = "ranking-item";
@@ -340,6 +342,18 @@ function renderRankings() {
     }
     els.rankingList.append(link);
   });
+}
+
+function safeInstagramUrl(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    if (url.protocol !== "https:" || !/^(?:www\.)?instagram\.com$/i.test(url.hostname)) return "";
+    const segments = url.pathname.split("/").filter(Boolean);
+    const handle = segments.length === 1 ? segments[0].replace(/^@/, "") : "";
+    return /^[a-z0-9._]{1,30}$/i.test(handle) ? `https://www.instagram.com/${handle}/` : "";
+  } catch {
+    return "";
+  }
 }
 
 function renderCards() {
@@ -523,6 +537,10 @@ els.correctionForm.addEventListener("submit", async (event) => {
   const form = new FormData(els.correctionForm);
   const artistId = String(form.get("artistId") || "").trim();
   const note = String(form.get("note") || "").trim();
+  const field = String(form.get("field") || "").trim();
+  const correctedValue = String(form.get("correctedValue") || "").trim();
+  const referenceUrl = String(form.get("referenceUrl") || "").trim();
+  const contact = String(form.get("contact") || "").trim();
 
   if (!artistId || !note) {
     els.correctionMessage.textContent = I18N.t("msgNeedArtistAndNote");
@@ -539,7 +557,11 @@ els.correctionForm.addEventListener("submit", async (event) => {
       body: JSON.stringify({
         artistId,
         artistName: artist ? artist.name : "",
-        note
+        note,
+        field,
+        correctedValue,
+        referenceUrl,
+        contact
       })
     });
     els.correctionForm.reset();

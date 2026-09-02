@@ -1,0 +1,47 @@
+.artist-page { min-height: 100vh; color: var(--ink); background: var(--paper); }
+.artist-page-header, .artist-page-footer { display: flex; justify-content: space-between; gap: 24px; align-items: center; width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 24px 0; border-bottom: 1px solid var(--line); }
+.artist-page-brand { color: var(--ink); font-size: 18px; font-weight: 900; letter-spacing: .04em; text-decoration: none; }
+.artist-page-brand small { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .08em; }
+.artist-page-header nav { display: flex; flex-wrap: wrap; gap: 18px; }
+.artist-page-header nav a, .artist-page-footer a { color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; }
+.artist-page-header nav a:hover, .artist-page-footer a:hover { color: var(--blue); }
+.artist-page-main { width: min(860px, calc(100% - 40px)); margin: 0 auto; padding: 76px 0 100px; }
+.artist-page-kicker { margin: 0 0 18px; color: var(--blue); font-size: 12px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+.artist-profile { padding: 0 0 24px; }
+.artist-profile-header { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+.artist-profile-header h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(42px, 7vw, 84px); line-height: .98; letter-spacing: 0; }
+.artist-profile-roman { margin: 12px 0 0; color: var(--muted); font-size: 16px; }
+.artist-profile-image { width: min(220px, 34vw); aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
+.artist-profile-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 20px 0; }
+.artist-profile-actions button, .artist-outline-link { min-height: 42px; padding: 0 15px; border: 1px solid var(--ink); border-radius: 6px; font-size: 13px; font-weight: 800; text-decoration: none; }
+.artist-profile-actions button { color: #fff; background: var(--ink); cursor: pointer; }
+.artist-profile-actions button:disabled { opacity: .65; cursor: wait; }
+.artist-outline-link { display: inline-flex; align-items: center; color: var(--ink); background: transparent; }
+.artist-share-status { flex-basis: 100%; margin: 0; color: var(--muted); font-size: 12px; }
+.artist-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.artist-facts div { padding: 17px 14px; }
+.artist-facts div + div { border-left: 1px solid var(--line); }
+.artist-facts dt { color: var(--muted); font-size: 11px; font-weight: 800; }
+.artist-facts dd { margin: 7px 0 0; font-size: 16px; font-weight: 700; }
+.artist-profile-section { padding: 28px 0; border-bottom: 1px solid var(--line); }
+.artist-profile-section h2 { margin: 0 0 14px; font-size: 18px; }
+.artist-profile-note { max-width: 720px; margin: 0; color: var(--muted); line-height: 1.85; white-space: pre-wrap; }
+.artist-profile-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.artist-profile-tags span { padding: 7px 10px; color: var(--blue); background: rgba(36,71,255,.08); border-radius: 5px; font-size: 12px; }
+.artist-source-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.artist-source-list li { display: flex; justify-content: space-between; gap: 18px; padding: 10px 0; border-bottom: 1px solid rgba(18,18,18,.1); }
+.artist-source-list a { color: var(--ink); font-weight: 700; }
+.artist-source-list small, .artist-muted { color: var(--muted); font-size: 12px; }
+.artist-page-footer { border-top: 1px solid var(--line); border-bottom: 0; color: var(--muted); font-size: 12px; }
+@media (max-width: 680px) {
+  .artist-page-header, .artist-page-footer, .artist-page-main { width: min(100% - 28px, 860px); }
+  .artist-page-header { align-items: flex-start; }
+  .artist-page-header nav { display: grid; gap: 8px; justify-items: end; }
+  .artist-page-main { padding: 48px 0 64px; }
+  .artist-profile-header { display: block; }
+  .artist-profile-image { width: 100%; max-width: 240px; margin-top: 22px; }
+  .artist-facts { grid-template-columns: 1fr; }
+  .artist-facts div + div { border-top: 1px solid var(--line); border-left: 0; }
+  .artist-source-list li { display: grid; gap: 4px; }
+  .artist-page-footer { display: grid; gap: 6px; }
+}

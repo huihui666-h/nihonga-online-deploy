@@ -1,4 +1,4 @@
-const { assertConfig, sendJson, setCors, supabaseFetch } = require("./_supabase");
+const { assertConfig, canonicalInstagramUrl, rateLimit, sendJson, setCors, supabaseFetch } = require("./_supabase");
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -7,6 +7,8 @@ module.exports = async function handler(req, res) {
     res.end();
     return;
   }
+
+  if (!rateLimit(req, res, { limit: 120, windowMs: 60_000, keyPrefix: "rankings" })) return;
 
   if (req.method !== "GET") {
     sendJson(res, 405, { ok: false, message: "方法不支持。" });
@@ -33,7 +35,7 @@ module.exports = async function handler(req, res) {
     }
 
     const ids = top.map(([id]) => id);
-    const artists = await supabaseFetch(`artists?id=in.(${ids.join(",")})&select=*`);
+    const artists = await supabaseFetch(`artists?id=in.(${ids.map((id) => encodeURIComponent(id)).join(",")})&select=*`);
     const artistMap = new Map(artists.map((artist) => [artist.id, artist]));
 
     const rankings = top
@@ -45,7 +47,7 @@ module.exports = async function handler(req, res) {
           count,
           name: artist.name || "",
           handle: artist.handle || "",
-          instagram: artist.instagram || ""
+          instagram: canonicalInstagramUrl(artist.instagram || artist.handle)
         };
       })
       .filter(Boolean);

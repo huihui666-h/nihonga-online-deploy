@@ -1,6 +1,7 @@
 const { sendJson, supabaseFetch } = require("./_supabase");
+const { newsSlug } = require("./_news-utils");
 
-const CATEGORIES = new Set(["exhibition", "open_call", "artist_news", "museum", "nihonga_news"]);
+const CATEGORIES = new Set(["exhibition", "open_call", "artist_news", "museum", "nihonga_news", "award", "selection", "solo", "graduation", "university", "gallery"]);
 
 function todayInTokyo() {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -22,6 +23,7 @@ function rowToNews(row, artists) {
   const relatedArtists = Array.isArray(artists) ? artists : [];
   return {
     id: row.id,
+    slug: newsSlug(row),
     title: row.title || "",
     summary: row.summary || "",
     category: row.category || "nihonga_news",
@@ -48,7 +50,7 @@ async function handleNews(req, res, requestUrl) {
   const requestedCategory = (url.searchParams.get("category") || "all").trim().toLowerCase();
   const category = CATEGORIES.has(requestedCategory) ? requestedCategory : "all";
   const limit = integer(url.searchParams.get("limit"), 24, 100);
-  const offset = Math.max(0, Number.parseInt(url.searchParams.get("offset"), 10) || 0);
+  const offset = Math.min(10_000, Math.max(0, Number.parseInt(url.searchParams.get("offset"), 10) || 0));
 
   // The news migration is optional during local development and rollout.
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -60,6 +62,7 @@ async function handleNews(req, res, requestUrl) {
     const today = todayInTokyo();
     const filters = [
       "status=eq.published",
+      "category=neq.new_artist",
       // Inside PostgREST's `or` expression, filters use the
       // `column.operator.value` form (without `=`).
       `or=(category.not.in.(exhibition,open_call),end_date.is.null,end_date.gte.${today})`,
@@ -97,15 +100,14 @@ async function handleNews(req, res, requestUrl) {
       offset
     });
   } catch (error) {
-    // Keep the additive endpoint isolated while exposing failures to clients;
-    // a 200/empty response makes outages indistinguishable from no content.
+    // Keep the additive endpoint isolated without returning upstream schema or
+    // connection details to the browser.
     sendJson(res, 503, {
       ok: false,
       news: [],
       category,
       limit,
       offset,
-      warning: error.message || "ニュースを読み込めませんでした。",
       message: "ニュースを読み込めませんでした。"
     });
   }

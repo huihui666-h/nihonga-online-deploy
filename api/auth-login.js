@@ -1,6 +1,7 @@
 const {
   assertConfig,
   readBody,
+  rateLimit,
   sendJson,
   setCors
 } = require("./_supabase");
@@ -29,11 +30,16 @@ module.exports = async function handler(req, res) {
     sendJson(res, 405, { ok: false, message: "方法不支持。" });
     return;
   }
+  if (!rateLimit(req, res, { limit: 10, windowMs: 60_000, keyPrefix: "auth-login" })) return;
   if (!requireSameOrigin(req, res)) return;
   if (!assertConfig(res)) return;
 
   try {
     const body = await readBody(req);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      sendAuthJson(res, 400, { ok: false, message: "请求内容不正确。" });
+      return;
+    }
     const email = normalizeEmail(body.email);
     const password = String(body.password || "");
     if (!email || validatePassword(password)) {

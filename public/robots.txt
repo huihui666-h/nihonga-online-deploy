@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /artists/
+Allow: /news/
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://nihonga-online-deploy.vercel.app/sitemap.xml

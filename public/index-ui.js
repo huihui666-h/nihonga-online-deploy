@@ -55,11 +55,13 @@ const IndexUI = (() => {
     const instagram = ArtistIndex.instagram(artist);
     const tags = ArtistIndex.tags(artist).filter((tag) => tag !== artist.school && tag !== artist.region);
     const imageUrl = ArtistIndex.safeUrl(artist.imageUrl);
+    const slug = String(artist.slug || ArtistIndex.slug?.(artist) || artist.id || "artist");
+    const artistPageUrl = `/artists/${encodeURIComponent(slug)}`;
     // Discovery cards keep a stable visual rhythm even when an artist has no image.
     // Detail views omit the placeholder when no image is available to stay compact.
     const showMedia = kind !== "detail" || Boolean(imageUrl);
     const added = ArtistIndex.addedTime(artist);
-    const title = name ? (kind === "detail" ? `<h3 id="artistDialogTitle">${escapeHtml(name)}</h3>` : `<h3><button type="button" class="artist-name-button">${escapeHtml(name)}</button></h3>`) : "";
+    const title = name ? (kind === "detail" ? `<h3 id="artistDialogTitle">${escapeHtml(name)}</h3>` : `<h3><a class="artist-name-link" href="${escapeHtml(artistPageUrl)}">${escapeHtml(name)}</a></h3>`) : "";
     card.innerHTML = `
       ${showMedia ? `<div class="card-media${imageUrl ? " has-image" : ""}">${imageUrl ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(clean(artist.imageAlt) || name)}" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : `<span class="card-monogram" aria-hidden="true">${escapeHtml(initials(name))}</span><span class="card-index" aria-hidden="true">${escapeHtml(t("cardIndexLabel"))} / ${String(index + 1).padStart(2, "0")}</span>`}</div>` : ""}
       <div class="card-body">
@@ -69,7 +71,7 @@ const IndexUI = (() => {
         ${clean(artist.huiNote) ? `<p class="hui-note"><strong>${escapeHtml(t("huiNoteLabel"))}</strong>${escapeHtml(clean(artist.huiNote))}</p>` : ""}
         ${instagram || kind !== "detail" ? `<div class="card-actions">${instagram ? `<a class="ig-link" href="${escapeHtml(instagram)}" target="_blank" rel="noopener noreferrer">Instagram ↗</a>` : ""}${kind !== "detail" ? `<button type="button" class="detail-button">${escapeHtml(t("cardDetails"))} <span aria-hidden="true">→</span></button>` : ""}</div>` : ""}
       </div>`;
-    card.querySelectorAll(".artist-name-button, .detail-button").forEach((button) => button.addEventListener("click", () => openArtist(artist.id)));
+    card.querySelector(".detail-button")?.addEventListener("click", () => openArtist(artist.id));
     card.querySelector(".ig-link")?.addEventListener("click", () => { if (artist.id) trackArtistClick(artist.id); });
     card.querySelector("img")?.addEventListener("error", (event) => {
       const media = event.target.parentElement;
@@ -244,15 +246,42 @@ const IndexUI = (() => {
     share.textContent = t("shareArtist");
     share.addEventListener("click", () => openShare(artist.id));
     footer.append(share);
-    const source = ArtistIndex.safeUrl(artist.sourcePage);
-    if (source && source !== ArtistIndex.instagram(artist)) {
+    const sources = [];
+    const futureSources = Array.isArray(artist.sources) ? artist.sources : Array.isArray(artist.artist_sources) ? artist.artist_sources : [];
+    futureSources.forEach((item) => {
+      const url = ArtistIndex.safeUrl(item?.url || item?.sourceUrl || item?.source_url);
+      if (url && !sources.some((source) => source.url === url)) sources.push({ url, name: ArtistIndex.clean(item?.name || item?.sourceName || item?.source_name) || t("sourceLabel"), type: ArtistIndex.clean(item?.type || item?.sourceType || item?.source_type) });
+    });
+    const legacySource = ArtistIndex.safeUrl(artist.sourcePage);
+    if (legacySource && !sources.some((source) => source.url === legacySource)) sources.push({ url: legacySource, name: t("sourceLabel"), type: "" });
+    const instagramSource = ArtistIndex.instagram(artist);
+    if (instagramSource && !sources.some((source) => source.url === instagramSource)) sources.push({ url: instagramSource, name: "Instagram", type: "SNS" });
+    if (sources.length === 1) {
       const link = document.createElement("a");
-      link.href = source;
+      link.href = sources[0].url;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
-      link.textContent = t("cardSource");
+      link.textContent = t("sourceLabel");
       link.addEventListener("click", () => trackArtistClick(artist.id));
       footer.append(link);
+    } else if (sources.length > 1) {
+      const details = document.createElement("details");
+      details.className = "detail-sources-popover";
+      const summary = document.createElement("summary");
+      summary.textContent = t("sourceLabel");
+      details.append(summary);
+      const list = document.createElement("ul");
+      sources.slice(0, 12).forEach((source) => {
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = source.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = source.name;
+        link.addEventListener("click", () => trackArtistClick(artist.id));
+        item.append(link);
+        if (source.type) { const type = document.createElement("small"); type.textContent = source.type; item.append(type); }
+        list.append(item);
+      });
+      details.append(list);
+      footer.append(details);
     }
     const report = document.createElement("button");
     report.type = "button";
@@ -350,7 +379,7 @@ const IndexUI = (() => {
       const previousLimit = limit;
       limit += PAGE_SIZE;
       renderCards(false);
-      $("artistGrid").children[previousLimit]?.querySelector(".artist-name-button")?.focus({ preventScroll: true });
+      $("artistGrid").children[previousLimit]?.querySelector(".artist-name-link")?.focus({ preventScroll: true });
     });
     ["grid", "list"].forEach((nextView) => $(`${nextView}ViewButton`).addEventListener("click", () => {
       view = nextView;
@@ -396,10 +425,21 @@ const IndexUI = (() => {
       persistBrowse();
     });
   }
-  function openShare(artistId) {
+  async function openShare(artistId) {
     const returnToArtist = $("artistDialog").open;
     if (returnToArtist) $("artistDialog").close();
-    $("shareLinkInput").value = IndexPreferences.shareUrl(location.href, { ...state, view }, I18N.current, artistId);
+    const artist = artistId ? artists().find((item) => item.id === artistId) : null;
+    const artistSlug = artist ? String(artist.slug || ArtistIndex.slug?.(artist) || artist.id) : "";
+    const shareUrl = artistSlug ? new URL(`/artists/${encodeURIComponent(artistSlug)}`, location.origin).href : IndexPreferences.shareUrl(location.href, { ...state, view }, I18N.current);
+    if (artistId && typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: `${artist?.name || "日本画作家"}｜NIHONGA INDEX`, text: "日本画作家インデックス", url: shareUrl });
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+      }
+    }
+    $("shareLinkInput").value = shareUrl;
     $("shareStatus").textContent = "";
     $("localShareHelp").hidden = !["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
     $("shareDialog").showModal();

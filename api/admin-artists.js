@@ -113,7 +113,7 @@ module.exports = async function handler(req, res) {
     if (req.method === "PATCH") {
       if (!requireSameOrigin(req, res)) return;
       const id = new URL(req.url, "http://localhost").searchParams.get("id");
-      if (!id) {
+      if (!/^[A-Za-z0-9_-]{1,100}$/.test(String(id || ""))) {
         sendJson(res, 400, { ok: false, message: "缺少画家 id。" });
         return;
       }
@@ -144,7 +144,7 @@ module.exports = async function handler(req, res) {
     if (req.method === "DELETE") {
       if (!requireSameOrigin(req, res)) return;
       const id = new URL(req.url, "http://localhost").searchParams.get("id");
-      if (!id) {
+      if (!/^[A-Za-z0-9_-]{1,100}$/.test(String(id || ""))) {
         sendJson(res, 400, { ok: false, message: "缺少画家 id。" });
         return;
       }

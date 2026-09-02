@@ -29,7 +29,7 @@ module.exports = async function handler(req, res) {
       const url = new URL(req.url, "http://localhost");
       const id = url.searchParams.get("id");
       const action = url.searchParams.get("action");
-      if (!id || !action) {
+      if (!/^[A-Za-z0-9_-]{1,100}$/.test(String(id || "")) || !action) {
         sendJson(res, 400, { ok: false, message: "缺少投稿 id 或操作。" });
         return;
       }
@@ -72,6 +72,10 @@ module.exports = async function handler(req, res) {
 
       if (action === "reject") {
         const body = await readBody(req);
+        if (!body || typeof body !== "object" || Array.isArray(body) || String(body.reviewNote || "").length > 5000) {
+          sendJson(res, 400, { ok: false, message: "审核备注内容不正确。" });
+          return;
+        }
         const updated = await updateSubmission(id, {
           status: "rejected",
           reviewed_at: new Date().toISOString(),
@@ -87,7 +91,7 @@ module.exports = async function handler(req, res) {
 
     if (req.method === "DELETE") {
       const id = new URL(req.url, "http://localhost").searchParams.get("id");
-      if (!id) {
+      if (!/^[A-Za-z0-9_-]{1,100}$/.test(String(id || ""))) {
         sendJson(res, 400, { ok: false, message: "缺少投稿 id。" });
         return;
       }

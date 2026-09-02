@@ -1,0 +1,13 @@
+.submit-page h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(42px, 7vw, 76px); line-height: 1; }
+.submit-lede { max-width: 680px; margin: 18px 0 38px; color: var(--muted); line-height: 1.8; }
+.artist-submit-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-top: 24px; border-top: 1px solid var(--line); }
+.artist-submit-form[hidden] { display: none; }
+.submit-correction-target { margin: 0; color: var(--pine); font-weight: 600; }
+.artist-submit-form label { display: grid; gap: 8px; color: var(--muted); font-size: 13px; }
+.artist-submit-form input, .artist-submit-form textarea { min-height: 44px; padding: 11px 12px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+.artist-submit-form textarea { resize: vertical; }
+.artist-submit-form .full-field { grid-column: 1 / -1; }
+.artist-submit-form button { width: fit-content; min-height: 44px; padding: 0 18px; color: #fff; background: var(--ink); border: 1px solid var(--ink); border-radius: 6px; font-weight: 800; cursor: pointer; }
+.artist-submit-form button:disabled { opacity: .6; cursor: wait; }
+.submit-note { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+@media (max-width: 680px) { .artist-submit-form { grid-template-columns: 1fr; } .artist-submit-form .full-field { grid-column: auto; } }

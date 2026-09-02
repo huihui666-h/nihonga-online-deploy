@@ -1,5 +1,6 @@
 const {
   assertConfig,
+  rateLimit,
   sendJson,
   setCors
 } = require("./_supabase");
@@ -21,6 +22,7 @@ module.exports = async function handler(req, res) {
     sendJson(res, 405, { ok: false, message: "方法不支持。" });
     return;
   }
+  if (!rateLimit(req, res, { limit: 60, windowMs: 60_000, keyPrefix: "auth-session" })) return;
   if (!assertConfig(res)) return;
 
   try {

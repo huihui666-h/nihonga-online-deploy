@@ -220,7 +220,7 @@ function clientMetadata(req) {
 }
 
 function authTableError(error) {
-  const text = String(error && (error.message || error.details || ""));
+  const text = String(error && (error.upstreamMessage || error.message || error.details || ""));
   if (error && (error.status === 404 || /site_users|site_sessions|relation .* does not exist/i.test(text))) {
     const wrapped = new Error("认证数据库尚未初始化，请先在 Supabase SQL Editor 执行 auth migration。");
     wrapped.status = 503;

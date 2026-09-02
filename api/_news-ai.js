@@ -28,7 +28,7 @@ async function handleNewsAi(req, res) {
 
   const apiKey = String(process.env.OPENAI_API_KEY || "").trim();
   if (!apiKey) {
-    sendJson(res, 503, { ok: false, message: "服务器尚未配置 OPENAI_API_KEY。" });
+    sendJson(res, 503, { ok: false, message: "AI 服务尚未配置。" });
     return;
   }
 
@@ -77,7 +77,7 @@ function buildPrompt(candidate) {
     "You are a Nihonga news metadata editor. Process only the supplied candidate; do not search the web.",
     "Return one strict JSON object and no markdown. Determine whether it directly concerns Japanese painting (日本画).",
     "Write an original, concise Japanese factual summary; do not copy sentences. Dates must be YYYY-MM-DD or null.",
-    "Allowed category values: exhibition, open_call, artist_news, museum, nihonga_news.",
+    "Allowed category values: exhibition, open_call, artist_news, museum, nihonga_news, award, selection, solo, graduation, university, gallery.",
     "Required keys: relevant, relevance_score, category, title, summary, artist_names, venue, start_date, end_date, tags.",
     JSON.stringify({
       title: candidate.title,
@@ -173,7 +173,7 @@ function normalizeModelResponse(payload) {
     relevance_score: Number.isFinite(Number(value.relevance_score))
       ? Math.max(0, Math.min(1, Number(value.relevance_score)))
       : null,
-    category: ["exhibition", "open_call", "artist_news", "museum", "nihonga_news"].includes(value.category)
+    category: ["exhibition", "open_call", "artist_news", "museum", "nihonga_news", "award", "selection", "solo", "graduation", "university", "gallery"].includes(value.category)
       ? value.category
       : "nihonga_news",
     title: clean(value.title, MAX_TITLE),

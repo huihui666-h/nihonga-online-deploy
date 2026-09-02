@@ -1,5 +1,6 @@
 const {
   assertConfig,
+  canonicalInstagramUrl,
   readBody,
   requireAdmin,
   sendJson,
@@ -31,7 +32,7 @@ module.exports = async function handler(req, res) {
       const artistId = String(body.artistId || "").trim();
       const count = Number.parseInt(body.count, 10);
 
-      if (!artistId) {
+      if (!/^[A-Za-z0-9_-]{1,100}$/.test(artistId)) {
         sendJson(res, 400, { ok: false, message: "缺少画家 id。" });
         return;
       }
@@ -90,7 +91,7 @@ async function getTodayRankings() {
   if (!top.length) return [];
 
   const ids = top.map(([id]) => id);
-  const artists = await supabaseFetch(`artists?id=in.(${ids.join(",")})&select=*`);
+  const artists = await supabaseFetch(`artists?id=in.(${ids.map((id) => encodeURIComponent(id)).join(",")})&select=*`);
   const artistMap = new Map(artists.map((artist) => [artist.id, artist]));
 
   return top
@@ -103,7 +104,7 @@ async function getTodayRankings() {
         name: artist.name || "",
         handle: artist.handle || "",
         school: artist.school || "",
-        instagram: artist.instagram || ""
+        instagram: canonicalInstagramUrl(artist.instagram || artist.handle)
       };
     })
     .filter(Boolean);

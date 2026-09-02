@@ -4,7 +4,13 @@
     open_call: "公募",
     artist_news: "作家動向",
     museum: "美術館",
-    nihonga_news: "日本画ニュース"
+    nihonga_news: "日本画ニュース",
+    award: "受賞",
+    selection: "入選",
+    solo: "個展",
+    graduation: "卒展",
+    university: "大学",
+    gallery: "画廊"
   };
   const tabs = [...document.querySelectorAll("[data-news-category]")];
   const list = document.querySelector("#newsList");
@@ -23,11 +29,8 @@
   function formatDate(news) {
     const start = text(news.startDate);
     const end = text(news.endDate);
-    if (start && end && start !== end) return `${start} – ${end}`;
-    if (start) return start;
-    const published = Date.parse(text(news.publishedAt));
-    if (!Number.isFinite(published)) return "";
-    return new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "short", day: "numeric" }).format(published);
+    if (start && end && start !== end) return `${NewsData.displayDate(start)} – ${NewsData.displayDate(end)}`;
+    return NewsData.displayDate(start || news.publishedAt);
   }
   function makeLink(label, href, className) {
     const link = document.createElement("a");
@@ -54,8 +57,11 @@
     article.append(meta);
 
     const sourceUrl = safeUrl(news.sourceUrl);
-    const title = sourceUrl ? makeLink(text(news.title), sourceUrl, "news-title") : document.createElement("h2");
-    if (!sourceUrl) { title.className = "news-title"; title.textContent = text(news.title) || "無題"; }
+    const detailUrl = text(news.slug) ? `/news/${encodeURIComponent(text(news.slug))}` : "";
+    const cleanTitle = NewsData.cleanTitle(news.title);
+    const title = detailUrl ? makeLink(cleanTitle, detailUrl, "news-title") : document.createElement("h2");
+    if (!detailUrl) { title.className = "news-title"; title.textContent = cleanTitle || "無題"; }
+    if (detailUrl) { title.target = "_self"; title.removeAttribute("rel"); }
     article.append(title);
     if (text(news.summary)) { const summary = document.createElement("p"); summary.className = "news-summary"; summary.textContent = text(news.summary); article.append(summary); }
     if (text(news.venue)) { const venue = document.createElement("p"); venue.className = "news-venue"; venue.innerHTML = "<strong>会場</strong> "; venue.append(document.createTextNode(text(news.venue))); article.append(venue); }

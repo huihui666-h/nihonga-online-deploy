@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>作家掲載申請｜NIHONGA INDEX</title>
+    <meta name="description" content="日本画作家の掲載申請。公開情報源を添えて、NIHONGA INDEX の作家インデックスに情報を提供できます。">
+    <link rel="canonical" href="https://nihonga-online-deploy.vercel.app/submit-artist">
+    <meta property="og:title" content="作家掲載申請｜NIHONGA INDEX">
+    <meta property="og:description" content="日本画作家の掲載申請。公開情報源を添えて情報を提供できます。">
+    <meta property="og:type" content="website">
+    <link rel="stylesheet" href="/styles.css?v=6">
+    <link rel="stylesheet" href="/artist-page.css?v=1">
+    <link rel="stylesheet" href="/submit-artist.css?v=1">
+  </head>
+  <body class="artist-page submit-page">
+    <header class="artist-page-header">
+      <a class="artist-page-brand" href="/">NIHONGA INDEX<small>日本画作家インデックス</small></a>
+      <nav aria-label="メインナビゲーション"><a href="/">作家を探す</a><a href="/news">NIHONGA NOW</a></nav>
+    </header>
+    <main class="artist-page-main">
+      <p class="artist-page-kicker">情報提供 / NIHONGA INDEX</p>
+      <h1>作家掲載申請</h1>
+      <p class="submit-lede">日本画作家ご本人、または公開情報をご存じの方からの情報提供を受け付けています。内容は確認後に掲載します。</p>
+      <form id="artistSubmissionForm" class="artist-submit-form">
+        <label>作家名<input name="name" required maxlength="160" autocomplete="name"></label>
+        <label>読み方<input name="romanName" maxlength="160" placeholder="ローマ字・読み方"></label>
+        <label>公式サイト<input name="officialWebsite" type="url" maxlength="2048" placeholder="https://..."></label>
+        <label>Instagram<input name="instagram" maxlength="2048" placeholder="https://www.instagram.com/.../"></label>
+        <label>所属<input name="affiliation" maxlength="120" placeholder="所属先・研究室など"></label>
+        <label>学歴 / 出身大学<input name="background" maxlength="200" placeholder="大学・専攻など"></label>
+        <label>地区<input name="region" maxlength="120" placeholder="東京・京都など"></label>
+        <label class="full-field">プロフィール<textarea name="bio" rows="5" maxlength="1800" placeholder="公開プロフィールとして確認できる経歴や活動"></textarea></label>
+        <label>参考 URL<input name="referenceSource" type="url" maxlength="2048" placeholder="展覧会・大学・画廊などの公開ページ"></label>
+        <label>連絡先（任意）<input name="contact" maxlength="240" autocomplete="email" placeholder="メールアドレス等"></label>
+        <p class="submit-note full-field">公開 URL を添えてください。個人情報や非公開資料は送信しないでください。</p>
+        <button type="submit">掲載申請を送る</button>
+        <p id="artistSubmissionStatus" class="artist-share-status full-field" role="status"></p>
+      </form>
+      <form id="artistCorrectionForm" class="artist-submit-form" hidden>
+        <input type="hidden" name="artistId">
+        <input type="hidden" name="artistName">
+        <p class="submit-correction-target full-field" id="correctionTarget"></p>
+        <label>修正する項目<input name="field" required maxlength="80" placeholder="所属・地区・プロフィールなど"></label>
+        <label>修正後の内容<textarea name="correctedValue" required rows="4" maxlength="1000" placeholder="正しい内容"></textarea></label>
+        <label>参考 URL<input name="referenceUrl" type="url" required maxlength="2048" placeholder="https://..."></label>
+        <label>連絡先（任意）<input name="contact" maxlength="240" autocomplete="email" placeholder="メールアドレス等"></label>
+        <label class="full-field">修正の説明<textarea name="note" required rows="4" maxlength="5000" placeholder="変更理由や確認できる情報"></textarea></label>
+        <button type="submit">修正報告を送る</button>
+        <p id="artistCorrectionStatus" class="artist-share-status full-field" role="status"></p>
+      </form>
+    </main>
+    <footer class="artist-page-footer"><a href="/">NIHONGA INDEX</a><span>A project by HUI STUDIO</span></footer>
+    <script src="/submit-artist.js?v=2" defer></script>
+  </body>
+</html>

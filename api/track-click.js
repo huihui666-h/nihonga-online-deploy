@@ -1,4 +1,4 @@
-const { assertConfig, readBody, sendJson, setCors, supabaseFetch } = require("./_supabase");
+const { assertConfig, rateLimit, readBody, sendJson, setCors, supabaseFetch } = require("./_supabase");
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -7,6 +7,8 @@ module.exports = async function handler(req, res) {
     res.end();
     return;
   }
+
+  if (!rateLimit(req, res, { limit: 60, windowMs: 60_000, keyPrefix: "track-click" })) return;
 
   if (req.method !== "POST") {
     sendJson(res, 405, { ok: false, message: "方法不支持。" });
@@ -17,8 +19,12 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = await readBody(req);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      sendJson(res, 400, { ok: false, message: "请求内容不正确。" });
+      return;
+    }
     const artistId = String(body.artistId || "").trim();
-    if (!artistId) {
+    if (!/^[A-Za-z0-9_-]{1,100}$/.test(artistId)) {
       sendJson(res, 400, { ok: false, message: "缺少画家 id。" });
       return;
     }
