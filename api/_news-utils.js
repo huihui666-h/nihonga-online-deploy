@@ -30,10 +30,11 @@ function newsCategoryLabel(row) {
   const title = text(row?.title);
   if (/受賞|入選|award|prize/i.test(title)) return "受賞・入選";
   if (/公募|募集|応募|出品/u.test(title)) return "公募";
-  if (/展覧会|展示|開催|個展|展覧/u.test(title)) return /個展/u.test(title) ? "個展" : "展覧会";
-  if (/大学|卒業制作|卒展/u.test(title)) return /卒業制作|卒展/u.test(title) ? "卒展" : "大学";
   if (/美術館/u.test(title)) return "美術館";
   if (/画廊|gallery/i.test(title)) return "画廊";
+  if (/卒業制作|卒展/u.test(title)) return "卒展";
+  if (/大学/u.test(title)) return "大学";
+  if (/展覧会|展示|開催|個展|展覧|展(?=\s|[―—|｜・:：-]|$)/u.test(title)) return /個展/u.test(title) ? "個展" : "展覧会";
   if (/掲載|訃報|逝去|インタビュー|活動|会員/u.test(title)) return "作家動向";
   return ({ exhibition: "展覧会", open_call: "公募", artist_news: "作家動向", museum: "美術館", nihonga_news: "日本画ニュース", award: "受賞", selection: "入選", solo: "個展", graduation: "卒展", university: "大学", gallery: "画廊" })[text(row?.category)] || "日本画ニュース";
 }

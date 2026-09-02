@@ -26,6 +26,8 @@ assert.equal(NewsData.cleanTitle("2026-09-01 日本画展"), "日本画展", "A 
 assert.equal(NewsData.cleanTitle("お知らせ：日本画展"), "日本画展", "Generic notification prefixes are removed from homepage titles");
 assert.equal(NewsData.categoryLabel({ title: "西田俊英理事長の雑誌掲載記事について", category: "open_call" }), "作家動向", "Headline semantics correct a coarse crawler category label");
 assert.equal(NewsData.itemCategory({ title: "西田俊英理事長の雑誌掲載記事について", category: "open_call" }), "artist_news", "Semantic categories keep corrected items out of the wrong tab");
+assert.equal(NewsData.itemCategory({ title: "井手康人展 ―共鳴する祈り", category: "open_call" }), "exhibition", "Named exhibitions stay out of the open-call tab");
+assert.equal(NewsData.itemCategory({ title: "再興第111回院展 応募要項", category: "exhibition" }), "open_call", "Application notices stay in the open-call tab");
 assert.equal(NewsData.displayDate("2026-9-1"), "2026.09.01", "News dates use one consistent display format");
 
 process.env.SUPABASE_URL = "https://example.supabase.co";
