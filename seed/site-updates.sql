@@ -24,10 +24,18 @@ begin
 end;
 $$;
 
-drop trigger if exists site_updates_touch_updated_at on public.site_updates;
-create trigger site_updates_touch_updated_at
-before update on public.site_updates
-for each row execute function public.touch_site_updates_updated_at();
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_trigger
+    where tgname = 'site_updates_touch_updated_at'
+      and tgrelid = 'public.site_updates'::regclass
+  ) then
+    execute 'create trigger site_updates_touch_updated_at before update on public.site_updates for each row execute function public.touch_site_updates_updated_at()';
+  end if;
+end;
+$$;
 
 alter table public.site_updates enable row level security;
 
