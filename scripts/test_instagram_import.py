@@ -3,11 +3,27 @@ import tempfile
 import unittest
 from urllib.error import HTTPError
 from pathlib import Path
+from unittest.mock import patch
 
 import instagram_import as importer
 
 
 class InstagramImportTests(unittest.TestCase):
+    def test_robots_missing_allows_public_page_but_server_error_stays_blocked(self):
+        missing = HTTPError("https://example.test/robots.txt", 404, "Not Found", None, None)
+        with patch.object(importer, "urlopen", side_effect=missing):
+            self.assertEqual(
+                importer.robots_allowed("https://example.test/public", retry_attempts=1),
+                (True, "robots-not-found"),
+            )
+
+        unavailable = HTTPError("https://example.test/robots.txt", 503, "Unavailable", None, None)
+        with patch.object(importer, "urlopen", side_effect=unavailable):
+            self.assertEqual(
+                importer.robots_allowed("https://example.test/public", retry_attempts=1),
+                (False, "robots-unavailable"),
+            )
+
     def test_canonical_profile_url_rejects_host_routes_and_accepts_u_alias(self):
         self.assertEqual(importer.normalize_handle("instagram.com"), "")
         self.assertEqual(importer.normalize_handle("https://www.instagram.com/foo/bar/"), "")

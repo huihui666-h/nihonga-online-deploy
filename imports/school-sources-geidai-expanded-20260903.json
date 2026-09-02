@@ -1,0 +1,194 @@
+{
+  "sources": [
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2025 日本画",
+      "url": "https://dr-exhibition.geidai.ac.jp/2025/departments/01.html",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2024 日本画",
+      "url": "https://dr-exhibition.geidai.ac.jp/2024/departments/01.html",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2023 日本画",
+      "url": "https://dr-exhibition.geidai.ac.jp/2023/departments/01.html",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2022 日本画",
+      "url": "https://dr-exhibition.geidai.ac.jp/2022/departments/01.html",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2021 日本画",
+      "url": "https://dr-exhibition.geidai.ac.jp/2021/departments/01.html",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2018 日本画 山田雄貴",
+      "url": "https://dr-exhibition.geidai.ac.jp/2018/japanese-painting/%e3%80%8c%e5%af%86%e9%9b%86%e3%80%8d%e8%a1%a8%e7%8f%be%e3%81%ae%e3%83%95%e3%82%a9%e3%83%ab%e3%83%a0/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2018 日本画 島田沙菜美",
+      "url": "https://dr-exhibition.geidai.ac.jp/2018/japanese-painting/%e3%81%be%e3%81%a9%e3%82%8d%e3%81%bf%e3%81%ae%e3%83%ad%e3%83%9e%e3%83%b3%e3%83%86%e3%82%a3%e3%82%b7%e3%82%ba%e3%83%a0/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2018 日本画 伊東春香",
+      "url": "https://dr-exhibition.geidai.ac.jp/2018/japanese-painting/%e3%82%b3%e3%83%b3%e3%83%93%e3%83%8a%e3%83%bc%e3%83%88%e3%82%92%e6%8f%8f%e3%81%8f/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2017 日本画 吉田侑加",
+      "url": "https://dr-exhibition.geidai.ac.jp/2017/japanese-painting/%e8%84%b1%e5%8d%b4%e3%81%a8%e8%9e%8d%e5%90%88%e3%83%bc%e7%99%bd%e3%81%ae%e6%99%af%e8%89%b2%e3%81%b8%e3%83%bc/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2016 日本画 松村侑紀",
+      "url": "https://dr-exhibition.geidai.ac.jp/2016/japanese-painting/%e3%80%8c%e6%a8%99%e8%ad%98%e8%89%b2%e3%80%8d%e3%81%a8%e3%80%8c%e9%9a%a0%e8%94%bd%e8%89%b2%e3%80%8d/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2016 日本画 重政周平",
+      "url": "https://dr-exhibition.geidai.ac.jp/2016/japanese-painting/%e7%b7%9a%e3%81%a8%e9%96%93%e9%9a%99%e3%81%ae%e7%9b%b8%e5%85%8b/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2016 日本画 川﨑麻央",
+      "url": "https://dr-exhibition.geidai.ac.jp/2016/japanese-painting/%e9%96%83%e3%81%8d%e3%81%a8%ef%bc%91%ef%bc%90%e3%81%ae%e3%83%95%e3%82%a7%e3%82%a4%e3%82%ba/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2016 日本画 アンジェリッチマリヤーナ",
+      "url": "https://dr-exhibition.geidai.ac.jp/2016/japanese-painting/%e4%ba%a4%e9%8c%af%e3%81%99%e3%82%8b%e3%82%a2%e3%82%a4%e3%83%87%e3%83%b3%e3%83%86%e3%82%a3%e3%83%86%e3%82%a3%e3%83%bc/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2020 日本画",
+      "url": "https://dr-exhibition.geidai.ac.jp/2020/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2019 日本画",
+      "url": "https://dr-exhibition.geidai.ac.jp/2019/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2015 日本画",
+      "url": "https://dr-exhibition.geidai.ac.jp/2015/japanese-painting/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 博士審査展2014 日本画",
+      "url": "https://dr-exhibition.geidai.ac.jp/2014/summary/course/jp/",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-doctoral-nihonga"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 藝祭2020 日本画学部4年展",
+      "url": "https://geisai.geidai.ac.jp/2020/exhibition/01/02.html",
+      "provider": "university",
+      "includeAlumni": false,
+      "includeFaculty": false,
+      "parser": "geidai-geisai-nihonga-students"
+    },
+    {
+      "school": "東京藝術大学",
+      "region": "東京",
+      "label": "東京藝術大学 歴代卒業・修了買上作品 日本画研究分野",
+      "url": "https://www.geidai.ac.jp/information/prize/student_works",
+      "provider": "university",
+      "includeAlumni": true,
+      "includeFaculty": false,
+      "parser": "geidai-nihonga-awards-history"
+    }
+  ]
+}

@@ -993,7 +993,13 @@ def robots_allowed(
             backoff_seconds=retry_backoff_seconds,
             sleep_fn=sleep_fn or time.sleep,
         )
-    except (HTTPError, URLError, TimeoutError, ConnectionError, OSError, ValueError):
+    except HTTPError as error:
+        # RFC 9309 treats a missing robots file as "unavailable": crawlers may
+        # access the requested resources. Keep other HTTP failures fail-closed.
+        if error.code in {404, 410}:
+            return True, "robots-not-found"
+        return False, "robots-unavailable"
+    except (URLError, TimeoutError, ConnectionError, OSError, ValueError):
         return False, "robots-unavailable"
 
     from urllib.robotparser import RobotFileParser
