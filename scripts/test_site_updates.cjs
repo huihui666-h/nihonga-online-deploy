@@ -49,6 +49,7 @@ global.fetch = async (url, options = {}) => {
 };
 
 const handler = require("../api/artists.js");
+const { Readable } = require("node:stream");
 
 function response() {
   let body;
@@ -71,7 +72,36 @@ function response() {
   await handler({ method: "GET", url: "/api/artists?resource=admin-updates", headers: {} }, unauthorized);
   assert.equal(unauthorized.statusCode, 401);
 
-  console.log("Site update tests passed: normalization, published-only query, limits and admin authentication.");
+  const authorized = response();
+  await handler({
+    method: "GET",
+    url: "/api/artists?resource=admin-updates",
+    headers: { "x-admin-password": "test-admin-password" }
+  }, authorized);
+  assert.equal(authorized.statusCode, 200);
+  assert.equal(authorized.body.updates[0].title, "公開");
+
+  const createRequest = Readable.from([JSON.stringify({
+    title: "新しい更新",
+    body: "公開前の記録",
+    publishedOn: "2026-09-02",
+    status: "draft"
+  })]);
+  createRequest.method = "POST";
+  createRequest.url = "/api/artists?resource=admin-updates";
+  createRequest.headers = {
+    "x-admin-password": "test-admin-password",
+    origin: "https://example.test",
+    host: "example.test",
+    "x-forwarded-proto": "https"
+  };
+  const created = response();
+  await handler(createRequest, created);
+  assert.equal(created.statusCode, 201);
+  assert.equal(JSON.parse(requests.at(-1).options.body).status, "draft");
+  assert.equal(JSON.parse(requests.at(-1).options.body).published_on, "2026-09-02");
+
+  console.log("Site update tests passed: normalization, published-only query, limits, admin authentication and draft creation.");
 })().catch((error) => {
   console.error(error);
   process.exitCode = 1;
