@@ -1,4 +1,4 @@
-const { supabaseFetch } = require("./_supabase");
+const { canonicalInstagramUrl, supabaseFetch } = require("./_supabase");
 
 function text(value) {
   return String(value ?? "")
@@ -78,7 +78,8 @@ function artistSources(row) {
     if (url) values.push({ name: text(source?.source_name || source?.name) || "公式情報", type: text(source?.source_type || source?.type), url });
   });
   const sourceType = text(row?.link_type || row?.linkType).toLowerCase();
-  const sourcePage = safeHttpUrl(row?.source_url || row?.sourceUrl || row?.source_page || row?.sourcePage);
+  const rawSourcePage = row?.source_url || row?.sourceUrl || row?.source_page || row?.sourcePage;
+  const sourcePage = sourceType === "instagram" ? canonicalInstagramUrl(rawSourcePage) : safeHttpUrl(rawSourcePage);
   if (sourcePage && !values.some((source) => source.url === sourcePage)) {
     values.push({
       name: sourceType === "instagram" ? "Instagram" : sourceType === "website" ? "公式サイト" : "公開プロフィール",
@@ -86,7 +87,7 @@ function artistSources(row) {
       url: sourcePage
     });
   }
-  const instagram = safeHttpUrl(row?.instagram);
+  const instagram = canonicalInstagramUrl(row?.instagram || row?.handle);
   if (instagram && !values.some((source) => source.url === instagram)) values.push({ name: "Instagram", type: "SNS", url: instagram });
   return values.slice(0, 12);
 }

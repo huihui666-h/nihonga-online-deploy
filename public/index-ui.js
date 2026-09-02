@@ -51,7 +51,7 @@ const IndexUI = (() => {
     const clean = ArtistIndex.clean;
     const name = clean(artist.name) || clean(artist.handle);
     const roman = clean(artist.romanName);
-    const handle = /^@?[a-z0-9_.]{1,30}$/i.test(String(artist.handle || "")) ? `@${artist.handle.replace(/^@/, "")}` : "";
+    const handle = ArtistIndex.validHandle?.(artist.handle) ? `@${String(artist.handle).replace(/^@/, "")}` : "";
     const instagram = ArtistIndex.instagram(artist);
     const tags = ArtistIndex.tags(artist).filter((tag) => tag !== artist.school && tag !== artist.region);
     const imageUrl = ArtistIndex.safeUrl(artist.imageUrl);
@@ -200,10 +200,14 @@ const IndexUI = (() => {
     const recent = ArtistIndex.recent(allArtists);
     if (recent.length) $("recentGrid").replaceChildren(...recent.map((artist) => createCard(artist, { kind: "recent" })));
     else empty($("recentGrid"), "recentUnavailable");
-    const availableTags = [...new Set(allArtists.flatMap(ArtistIndex.tags))];
+    // Schools and regions can be stored in the legacy `styles` array. Keep
+    // those structural values in their dedicated filters instead of surfacing
+    // them as discovery topics on the homepage.
+    const structuralValues = new Set(allArtists.flatMap((artist) => [ArtistIndex.clean(artist.school), ArtistIndex.clean(artist.region)]).filter(Boolean));
+    const availableTags = [...new Set(allArtists.flatMap(ArtistIndex.tags))].filter((tag) => !structuralValues.has(tag));
     // Only existing tags. Do not infer subjects or techniques from biographies.
     const preferred = ["人物", "動物", "花鳥", "風景", "幻想", "抽象", "絵画", "日本画家", "若手作家", "中国/華人"];
-    const quickTags = [...new Set([...preferred.filter((tag) => availableTags.includes(tag)), ...availableTags.filter((tag) => tag !== "日本画")])].slice(0, 5);
+    const quickTags = preferred.filter((tag) => availableTags.includes(tag)).slice(0, 5);
     quickTags.forEach((tag) => {
       const button = document.createElement("button");
       button.type = "button";

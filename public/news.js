@@ -1,17 +1,4 @@
 (function () {
-  const CATEGORY_LABELS = {
-    exhibition: "展覧会",
-    open_call: "公募",
-    artist_news: "作家動向",
-    museum: "美術館",
-    nihonga_news: "日本画ニュース",
-    award: "受賞",
-    selection: "入選",
-    solo: "個展",
-    graduation: "卒展",
-    university: "大学",
-    gallery: "画廊"
-  };
   const tabs = [...document.querySelectorAll("[data-news-category]")];
   const list = document.querySelector("#newsList");
   const status = document.querySelector("#newsStatus");
@@ -48,7 +35,7 @@
     meta.className = "news-card-meta";
     const category = document.createElement("span");
     category.className = "news-card-category";
-    category.textContent = CATEGORY_LABELS[news.category] || news.category || "日本画ニュース";
+    category.textContent = NewsData.categoryLabel(news);
     const date = document.createElement("time");
     date.textContent = formatDate(news);
     if (news.publishedAt) date.dateTime = text(news.publishedAt);
@@ -106,7 +93,9 @@
     activeCategory = category;
     tabs.forEach((tab) => tab.setAttribute("aria-selected", String(tab.dataset.newsCategory === category)));
     status.textContent = "読み込み中…";
-    const query = category !== "latest" ? `?category=${encodeURIComponent(category)}&limit=50` : "?limit=50";
+    // Fetch one bounded set so client-side semantic corrections stay
+    // consistent across tabs even when a crawler supplied a coarse category.
+    const query = "?limit=100";
     try {
       const response = await fetch(`/api/news${query}`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(12000) });
       if (!response.ok) throw new Error("request failed");

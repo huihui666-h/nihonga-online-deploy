@@ -35,7 +35,7 @@ const indexTranslations = {
     finderPrompts: ["Figurative painters", "Imagined worlds", "Animal subjects", "Tokyo University of the Arts", "A quiet atmosphere", "Artists like Fuyuko Matsui"]
   },
   ja: {
-    skipToArtists: "作家一覧へ", navArtists: "作家一覧", navExplore: "見つける", navNews: "Nihonga Now", navNewsAria: "Nihonga Now 日本画ニュースへ", navAbout: "このサイト", navContribute: "情報提供",
+    skipToArtists: "作家一覧へ", navArtists: "作家一覧", navExplore: "作家を探す", navNews: "Nihonga Now", navNewsAria: "Nihonga Now 日本画ニュースへ", navAbout: "このサイトについて", navContribute: "情報提供",
     newsHomeEyebrow: "NIHONGA NOW", newsHomeTitle: "日本画ニュース", newsHomeLede: "展覧会、公募、作家の動きを、いち早く。", newsHomeMore: "すべて見る",
     logEyebrow: "HUI LOG", logTitle: "更新記録", logDescription: "NIHONGA INDEX が少しずつ育っていく記録。", logEntryOneTitle: "NIHONGA NOW を公開", logEntryOneText: "展覧会、公募、作家動向を集める日本画ニュース欄を追加。", logEntryTwoTitle: "最近追加された作家を整理", logEntryTwoText: "追加日がある作家は新しい順に。未設定でも案内を保って表示。", logEntryThreeTitle: "検索を入口に", logEntryThreeText: "作家名、学校、地域、キーワードから日本画家を探せます。",
     indexSubtitle: "日本画を、作家・題材・学校から探す。", indexSearchPlaceholder: "作家名、学校、地域、キーワード…", browseByTag: "タグから探す",

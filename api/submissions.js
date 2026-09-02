@@ -1,4 +1,4 @@
-const { assertConfig, rateLimit, readBody, sendJson, setCors, supabaseFetch, publicUrl } = require("./_supabase");
+const { assertConfig, canonicalInstagramUrl, rateLimit, readBody, sendJson, setCors, supabaseFetch, publicUrl } = require("./_supabase");
 const { getSessionUser, requireSameOrigin, sendAuthJson } = require("./_auth");
 
 module.exports = async function handler(req, res) {
@@ -89,11 +89,7 @@ module.exports = async function handler(req, res) {
 };
 
 function normalizeInstagram(value) {
-  const text = String(value || "").trim();
-  if (!text) return "";
-  const match = text.match(/instagram\.com\/([A-Za-z0-9_.]+)/i);
-  const handle = match ? match[1] : text.replace(/^@/, "");
-  return `https://www.instagram.com/${handle.replace(/\/+$/, "")}/`;
+  return canonicalInstagramUrl(value);
 }
 
 function boundedText(value, maximum) {

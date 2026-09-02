@@ -11,16 +11,21 @@
   const safeUrl = (value) => {
     try { const url = new URL(text(value)); return /^https?:$/.test(url.protocol) ? text(value) : ""; } catch { return ""; }
   };
+  const invalidHandles = new Set(["http", "https", "www", "instagram", "instagram.com"]);
+  const validHandle = (value) => {
+    const handle = clean(value).replace(/^@/, "").toLowerCase();
+    return /^[a-z0-9._]{1,30}$/.test(handle) && !invalidHandles.has(handle);
+  };
   const instagram = (artist) => {
     const direct = safeUrl(artist.instagram);
     if (direct) {
       try {
         const firstSegment = new URL(direct).pathname.split("/").filter(Boolean)[0] || "";
-        if (/^@?[a-z0-9_.]{1,30}$/i.test(firstSegment)) return direct;
+        if (validHandle(firstSegment)) return direct;
       } catch { /* Fall through to the validated handle. */ }
     }
     const handle = clean(artist.handle);
-    return /^@?[a-z0-9_.]{1,30}$/i.test(handle) ? `https://www.instagram.com/${handle.replace(/^@/, "")}/` : "";
+    return validHandle(handle) ? `https://www.instagram.com/${handle.replace(/^@/, "")}/` : "";
   };
   const slug = (artist) => {
     const source = clean(artist?.romanName || artist?.roman_name || artist?.name || artist?.handle || artist?.id || "artist").replace(/^@/, "");
@@ -64,7 +69,7 @@
     const byId = new Map(artists.filter((artist) => typeof artist.id === "string").map((artist) => [artist.id, artist]));
     return [...new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === "string") : [])].map((id) => byId.get(id)).filter(Boolean);
   };
-  const helpers = { clean, normalize, tags, safeUrl, instagram, slug, addedTime, editorial, matches, featured, recent, random, resolveIds };
+  const helpers = { clean, normalize, tags, safeUrl, instagram, validHandle, slug, addedTime, editorial, matches, featured, recent, random, resolveIds };
   if (typeof module !== "undefined" && module.exports) module.exports = helpers;
   else root.ArtistIndex = Object.freeze(helpers);
 })(typeof window !== "undefined" ? window : this);

@@ -1,5 +1,4 @@
 (function () {
-  const CATEGORY_LABELS = { exhibition: "展覧会", open_call: "公募", artist_news: "作家動向", museum: "美術館", nihonga_news: "日本画ニュース", award: "受賞", selection: "入選", solo: "個展", graduation: "卒展", university: "大学", gallery: "画廊" };
   const list = document.querySelector("#newsHomeList");
   if (!list) return;
   const section = list.closest(".news-home-section");
@@ -7,11 +6,10 @@
   const safeUrl = (value) => { try { const url = new URL(text(value), window.location.origin); return /^https?:$/i.test(url.protocol) ? url.href : ""; } catch { return ""; } };
   const date = (item) => NewsData.displayDate(text(item.publishedAt) || text(item.startDate));
   let newsItems = [];
-  const categoryLabel = (item) => /受賞|入選|award|prize/i.test(text(item.title)) ? "受賞・入選" : CATEGORY_LABELS[item.category] || item.category || "日本画ニュース";
   const card = (item) => {
     const article = document.createElement("article"); article.className = "news-home-card";
     const meta = document.createElement("div"); meta.className = "news-card-meta";
-    const category = document.createElement("span"); category.className = "news-card-category"; category.textContent = categoryLabel(item);
+    const category = document.createElement("span"); category.className = "news-card-category"; category.textContent = NewsData.categoryLabel(item);
     const time = document.createElement("time"); time.textContent = date(item); meta.append(category); if (time.textContent) meta.append(time); article.append(meta);
     const href = safeUrl(item.sourceUrl);
     const detailHref = text(item.detailUrl) || (text(item.slug) ? `/news/${encodeURIComponent(text(item.slug))}` : "");

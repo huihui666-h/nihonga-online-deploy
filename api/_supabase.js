@@ -189,7 +189,7 @@ function canonicalInstagramHandle(value) {
 
   handle = normalizeText(handle).replace(/^@/, "").toLowerCase();
   if (!/^[a-z0-9._]{1,30}$/.test(handle)) return "";
-  if (["accounts", "about", "challenge", "direct", "developer", "directory", "emails", "explore", "p", "reel", "reels", "stories", "tags", "locations", "hashtag", "tv", "privacy", "legal"].includes(handle)) return "";
+  if (["http", "https", "www", "instagram", "instagram.com", "accounts", "about", "challenge", "direct", "developer", "directory", "emails", "explore", "p", "reel", "reels", "stories", "tags", "locations", "hashtag", "tv", "privacy", "legal"].includes(handle)) return "";
   return handle;
 }
 

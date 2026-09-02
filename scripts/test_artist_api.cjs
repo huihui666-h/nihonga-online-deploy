@@ -35,6 +35,7 @@ async function request() {
   assert.ok(!("createdAt" in legacy));
   const sourceList = artistSources({ instagram: "https://www.instagram.com/test/", source_url: "https://example.org/profile", link_type: "website" });
   assert.deepEqual(sourceList.map((source) => source.name), ["公式サイト", "Instagram"]);
+  assert.deepEqual(artistSources({ instagram: "https://www.instagram.com/https/", source_page: "https://www.instagram.com/https/", link_type: "instagram" }), [], "Invalid Instagram identities stay out of public source lists");
   const html = renderArtistPage({ ...row, sources: [{ source_name: "東京藝術大学", source_type: "大学", source_url: "https://example.org/source" }] }, "test-artist", new Map([[row.id, "test-artist"]]));
   assert.match(html, /<h1>Test record<\/h1>/, "Initial artist HTML contains the artist name");
   assert.match(html, /東京藝術大学/, "Initial artist HTML contains school and source information");

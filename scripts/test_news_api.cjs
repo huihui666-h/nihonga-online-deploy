@@ -23,6 +23,9 @@ assert.equal(NewsData.active({ status: "published", endDate: "2026-08-31" }, now
 assert.equal(NewsData.active({ status: "published", category: "museum", endDate: "2026-08-31" }, now), true, "Only exhibitions and open calls expire by end date");
 assert.equal(NewsData.active({ status: "published", category: "new_artist", publishedAt: "2026-09-06" }, now), false, "Directory additions are not automatically treated as news");
 assert.equal(NewsData.cleanTitle("2026-09-01 日本画展"), "日本画展", "A duplicated leading date is removed from a news title");
+assert.equal(NewsData.cleanTitle("お知らせ：日本画展"), "日本画展", "Generic notification prefixes are removed from homepage titles");
+assert.equal(NewsData.categoryLabel({ title: "西田俊英理事長の雑誌掲載記事について", category: "open_call" }), "作家動向", "Headline semantics correct a coarse crawler category label");
+assert.equal(NewsData.itemCategory({ title: "西田俊英理事長の雑誌掲載記事について", category: "open_call" }), "artist_news", "Semantic categories keep corrected items out of the wrong tab");
 assert.equal(NewsData.displayDate("2026-9-1"), "2026.09.01", "News dates use one consistent display format");
 
 process.env.SUPABASE_URL = "https://example.supabase.co";
@@ -34,6 +37,9 @@ global.fetch = async (url) => {
   return { ok: true, text: async () => JSON.stringify([{ id: "one", title: "日本画展", status: "published", category: "exhibition", source_name: "日展", source_url: "https://example.test/one", end_date: "2026-10-01", raw_artist_names: ["山田花子"] }]) };
 };
 const handler = require("../api/artists.js");
+const newsUtils = require("../api/_news-utils.js");
+assert.equal(newsUtils.cleanNewsTitle("お知らせ：日本画展"), "日本画展", "Server news titles use the same compact cleanup");
+assert.equal(newsUtils.newsCategoryLabel({ title: "西田俊英理事長の雑誌掲載記事について", category: "open_call" }), "作家動向", "Server news details use the same semantic category label");
 (async () => {
   let body;
   const response = { setHeader() {}, end(value) { body = JSON.parse(value); } };

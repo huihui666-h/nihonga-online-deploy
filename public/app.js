@@ -350,7 +350,7 @@ function safeInstagramUrl(value) {
     if (url.protocol !== "https:" || !/^(?:www\.)?instagram\.com$/i.test(url.hostname)) return "";
     const segments = url.pathname.split("/").filter(Boolean);
     const handle = segments.length === 1 ? segments[0].replace(/^@/, "") : "";
-    return /^[a-z0-9._]{1,30}$/i.test(handle) ? `https://www.instagram.com/${handle}/` : "";
+    return ArtistIndex.validHandle?.(handle) ? `https://www.instagram.com/${handle}/` : "";
   } catch {
     return "";
   }
@@ -405,9 +405,11 @@ function bumpRankingCount(artistId) {
 function normalizeSubmissionInstagram(value) {
   const text = String(value || "").trim();
   if (!text) return "";
-  const match = text.match(/instagram\.com\/([A-Za-z0-9_.]+)/i);
-  if (match) return `https://www.instagram.com/${match[1].replace(/\/+$/, "")}/`;
-  return `https://www.instagram.com/${text.replace(/^@/, "").replace(/\/+$/, "")}/`;
+  const urlMatch = text.match(/^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([A-Za-z0-9_.]{1,30})\/?(?:[?#].*)?$/i);
+  const handleMatch = text.match(/^@?([A-Za-z0-9_.]{1,30})$/);
+  const handle = (urlMatch?.[1] || handleMatch?.[1] || "").toLowerCase();
+  if (!handle || ["http", "https", "www", "instagram", "instagram.com"].includes(handle)) return "";
+  return `https://www.instagram.com/${handle}/`;
 }
 
 els.loginForm.addEventListener("submit", (event) => {

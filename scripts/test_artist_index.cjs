@@ -35,6 +35,7 @@ assert.deepEqual(index.resolveIds(["missing", "test-b", "test-b", { id: "test-a"
 assert.equal(index.safeUrl("javascript:alert(1)"), "");
 assert.equal(index.instagram({ handle: "IG 待补" }), "");
 assert.equal(index.instagram({ instagram: "https://www.instagram.com/待会补/" }), "", "Placeholder Instagram URLs stay hidden");
+assert.equal(index.instagram({ instagram: "https://www.instagram.com/https/", handle: "@https" }), "", "Protocol fragments never render as Instagram identities");
 assert.equal(index.instagram({ instagram: "https://www.instagram.com/real/?igsh=abc" }), "https://www.instagram.com/real/?igsh=abc");
 assert.equal(index.clean("Unknown"), "");
 assert.equal(index.editorial(records[0], { "test-a": { huiNote: "HUI supplied note" } }).huiNote, "HUI supplied note");

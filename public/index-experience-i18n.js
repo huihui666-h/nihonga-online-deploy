@@ -1,7 +1,7 @@
 /* Account capabilities describe implemented behavior, not promised cloud services. */
 const experienceTranslations = {
   zh: {
-    accountTitle: "你的浏览空间", accountGuide: "游客与注册账号有什么不同？", accountGuest: "游客", accountMember: "注册用户", accountEntry: "游客 · 登录", accountUnknown: "登录 / 注册",
+    accountTitle: "你的浏览空间", accountGuide: "游客与注册账号有什么不同？", accountGuest: "游客", accountMember: "注册用户", accountEntry: "登录", accountUnknown: "登录",
     guestDescription: "无需注册，也能完整浏览、搜索、筛选和分享画家；推荐画家、信息纠错和收藏需登录。", memberDescription: "使用邮箱账号登录，保存收藏并推荐画家或提交信息纠错。",
     featureLabel: "功能", featureBrowse: "浏览、搜索与分享", featureContribute: "推荐画家与信息纠错", featureHistory: "本标签页浏览进度", featureFavorites: "按账号区分的本机收藏", featureSession: "登录身份与保持登录", featureAvailable: "可用", featureRegister: "登录后可用", featureGuestSession: "仅游客浏览", featureMemberSession: "邮箱登录，可选择保持登录",
     accountScope: "游客可以公开浏览、搜索、筛选和分享；推荐画家、信息纠错与收藏仅对已登录用户开放。收藏仅保存在当前浏览器，按账号区分；不跨设备同步，清除网站数据会丢失。", progressScope: "搜索条件和浏览位置仅在当前标签页记忆，不上传。",
@@ -13,7 +13,7 @@ const experienceTranslations = {
     demoMemberNotice: "本地注册用户演示 · 虚构体验账号 · 不创建账号、不写入线上数据"
   },
   en: {
-    accountTitle: "Your browsing space", accountGuide: "Guest or registered account?", accountGuest: "Guest", accountMember: "Registered user", accountEntry: "Guest · Sign in", accountUnknown: "Sign in / Register",
+    accountTitle: "Your browsing space", accountGuide: "Guest or registered account?", accountGuest: "Guest", accountMember: "Registered user", accountEntry: "Sign in", accountUnknown: "Sign in",
     guestDescription: "Browse, search, filter and share the full index without registering; sign in to save favorites, recommend artists or report corrections.", memberDescription: "Sign in with an email account to save favorites, recommend artists and report corrections in this browser.",
     featureLabel: "Feature", featureBrowse: "Browse, search and share", featureContribute: "Recommend artists and report information", featureHistory: "Browsing progress in this tab", featureFavorites: "Local favorites separated by account", featureSession: "Account identity and stay signed in", featureAvailable: "Available", featureRegister: "Sign in to use", featureGuestSession: "Guest browsing only", featureMemberSession: "Email sign-in; optional stay signed in",
     accountScope: "Guests can browse, search, filter and share the public index. Sign in to save favorites, recommend artists or report corrections. Favorites stay in this browser, separately for each account; they do not sync across devices and are lost if site data is cleared.", progressScope: "Search and scroll position stay in this tab and are not uploaded.",
@@ -25,7 +25,7 @@ const experienceTranslations = {
     demoMemberNotice: "Local registered-user demo · Fictional account · No account creation or production writes"
   },
   ja: {
-    accountTitle: "あなたの閲覧スペース", accountGuide: "ゲストと登録ユーザーの違い", accountGuest: "ゲスト", accountMember: "登録ユーザー", accountEntry: "ゲスト · ログイン", accountUnknown: "ログイン / 登録",
+    accountTitle: "あなたの閲覧スペース", accountGuide: "ゲストと登録ユーザーの違い", accountGuest: "ゲスト", accountMember: "登録ユーザー", accountEntry: "ログイン", accountUnknown: "ログイン",
     guestDescription: "登録なしで、すべての作家の閲覧・検索・絞り込み・共有ができます。お気に入り、作家の推薦、情報の修正報告はログイン後に利用できます。", memberDescription: "メールアドレスでログインすると、このブラウザにお気に入りを保存し、作家の推薦や修正報告を送れます。",
     featureLabel: "機能", featureBrowse: "閲覧・検索・共有", featureContribute: "作家の推薦・情報の修正報告", featureHistory: "このタブでの閲覧位置の記憶", featureFavorites: "アカウント別のローカルお気に入り", featureSession: "アカウントとログイン状態の保持", featureAvailable: "利用可能", featureRegister: "ログイン後に利用可能", featureGuestSession: "ゲスト閲覧のみ", featureMemberSession: "メールでログイン・状態の保持を選択可能",
     accountScope: "公開の作家一覧はゲストも閲覧・検索・絞り込み・共有できます。お気に入り、作家の推薦、情報の修正報告はログイン後に利用できます。お気に入りはアカウント別にこのブラウザだけに保存され、端末間では同期されません。サイトデータを消去すると失われます。", progressScope: "検索条件と閲覧位置はこのタブにのみ記憶され、送信されません。",
