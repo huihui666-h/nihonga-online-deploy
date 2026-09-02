@@ -6,6 +6,8 @@ const { handleArtistPage } = require("./_artist-page");
 const { handleNewsPage } = require("./_news-page");
 const { handleSitemap } = require("./_sitemap");
 const { handleAdminNews } = require("./_admin-news");
+const { handleUpdates } = require("./_updates");
+const { handleAdminUpdates } = require("./_admin-updates");
 
 module.exports = async function handler(req, res) {
   setCors(res);
@@ -40,6 +42,14 @@ module.exports = async function handler(req, res) {
   }
   if (url.searchParams.get("resource") === "admin-news") {
     await handleAdminNews(req, res, url);
+    return;
+  }
+  if (url.searchParams.get("resource") === "updates") {
+    await handleUpdates(req, res, url);
+    return;
+  }
+  if (url.searchParams.get("resource") === "admin-updates") {
+    await handleAdminUpdates(req, res, url);
     return;
   }
 

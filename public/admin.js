@@ -5,6 +5,8 @@ let artists = [];
 let submissions = [];
 let rankings = [];
 let news = [];
+let siteUpdates = [];
+let siteUpdatesUnavailable = false;
 let users = [];
 let usersLoaded = false;
 let usersLoading = false;
@@ -38,6 +40,12 @@ const els = {
   newNewsButton: document.querySelector("#newNewsButton"),
   deleteNewsButton: document.querySelector("#deleteNewsButton"),
   newsMessage: document.querySelector("#newsMessage"),
+  updateAdminList: document.querySelector("#updateAdminList"),
+  updateForm: document.querySelector("#updateForm"),
+  updateIdInput: document.querySelector("#updateIdInput"),
+  newUpdateButton: document.querySelector("#newUpdateButton"),
+  deleteUpdateButton: document.querySelector("#deleteUpdateButton"),
+  updateMessage: document.querySelector("#updateMessage"),
   userList: document.querySelector("#userList"),
   userListStatus: document.querySelector("#userListStatus"),
   userSearchInput: document.querySelector("#userSearchInput"),
@@ -179,21 +187,25 @@ function detectFromProfile(text) {
 }
 
 async function loadAll() {
-  const [artistData, submissionData, rankingData, newsData] = await Promise.all([
+  const [artistData, submissionData, rankingData, newsData, updateData] = await Promise.all([
     api("/api/admin-artists"),
     api("/api/admin-submissions"),
     api("/api/admin-rankings"),
-    api("/api/admin-news")
+    api("/api/admin-news"),
+    api("/api/admin-updates")
   ]);
   artists = artistData.artists || [];
   submissions = submissionData.submissions || [];
   rankings = rankingData.rankings || [];
   news = newsData.news || [];
+  siteUpdates = updateData.updates || [];
+  siteUpdatesUnavailable = Boolean(updateData.unavailable);
   renderArtists();
   renderSubmissions();
   renderRankingTools();
   renderCorrections();
   renderNewsAdmin();
+  renderUpdateAdmin();
 }
 
 async function loadUsers() {
@@ -571,6 +583,109 @@ async function deleteNews(id) {
   } catch (error) { setMessage(error.message || "删除失败。", true); }
 }
 
+function todayInTokyo() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Tokyo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function fillUpdateForm(item = {}) {
+  if (!els.updateForm || siteUpdatesUnavailable) return;
+  els.updateIdInput.value = item.id || "";
+  els.updateForm.elements.title.value = item.title || "";
+  els.updateForm.elements.body.value = item.body || "";
+  els.updateForm.elements.publishedOn.value = String(item.published_on || item.publishedOn || todayInTokyo()).slice(0, 10);
+  els.updateForm.elements.status.value = item.status || "draft";
+  els.updateForm.hidden = false;
+  els.updateMessage.textContent = "";
+}
+
+function readUpdateForm() {
+  const form = els.updateForm;
+  return {
+    title: form.elements.title.value.trim(),
+    body: form.elements.body.value.trim(),
+    publishedOn: form.elements.publishedOn.value,
+    status: form.elements.status.value
+  };
+}
+
+function renderUpdateAdmin() {
+  if (!els.updateAdminList) return;
+  els.updateAdminList.replaceChildren();
+  if (els.newUpdateButton) els.newUpdateButton.disabled = siteUpdatesUnavailable;
+  if (siteUpdatesUnavailable) {
+    const unavailable = document.createElement("p");
+    unavailable.className = "helper-message is-error";
+    unavailable.textContent = "更新记录数据表尚未初始化。请先在 Supabase 执行 seed/site-updates.sql，然后刷新后台。";
+    els.updateAdminList.append(unavailable);
+    return;
+  }
+  if (!siteUpdates.length) {
+    const empty = document.createElement("p");
+    empty.className = "helper-message";
+    empty.textContent = "暂无更新记录。";
+    els.updateAdminList.append(empty);
+    return;
+  }
+  siteUpdates.forEach((item) => {
+    const row = document.createElement("article");
+    row.className = `submission-row news-admin-row is-${escapeHtml(item.status || "draft")}`;
+    const date = String(item.published_on || item.publishedOn || item.created_at || "").slice(0, 10);
+    const status = item.status === "published" ? "已发布" : "草稿";
+    row.innerHTML = `<div class="submission-summary"><div><strong>${escapeHtml(item.title || "无标题")}</strong><span>${escapeHtml(status)} · ${escapeHtml(date)}</span><span>${escapeHtml(item.body || "无说明")}</span></div><div class="button-row"><button data-update-action="edit" type="button">编辑</button><button data-update-action="delete" class="danger" type="button">删除</button></div></div>`;
+    row.querySelector('[data-update-action="edit"]').addEventListener("click", () => fillUpdateForm(item));
+    row.querySelector('[data-update-action="delete"]').addEventListener("click", () => deleteUpdate(item.id));
+    els.updateAdminList.append(row);
+  });
+}
+
+async function saveUpdate(event) {
+  event.preventDefault();
+  const id = els.updateIdInput.value.trim();
+  const payload = readUpdateForm();
+  els.updateMessage.textContent = "保存中…";
+  els.updateMessage.classList.remove("is-error");
+  try {
+    const data = await api(id ? `/api/admin-updates?id=${encodeURIComponent(id)}` : "/api/admin-updates", {
+      method: id ? "PATCH" : "POST",
+      body: JSON.stringify(payload)
+    });
+    const saved = data.update;
+    siteUpdates = id ? siteUpdates.map((item) => item.id === id ? saved : item) : [saved, ...siteUpdates];
+    siteUpdates.sort((a, b) => String(b.published_on || "").localeCompare(String(a.published_on || "")));
+    renderUpdateAdmin();
+    els.updateMessage.textContent = "更新记录已保存。";
+    if (!id) fillUpdateForm(saved);
+    setMessage(payload.status === "published" ? "更新记录已发布，首页刷新后生效。" : "更新记录已保存为草稿。");
+  } catch (error) {
+    els.updateMessage.textContent = error.message || "保存失败。";
+    els.updateMessage.classList.add("is-error");
+  }
+}
+
+async function deleteUpdate(id) {
+  if (!id || !confirm("确定删除这条更新记录？此操作不可恢复。")) return;
+  try {
+    await api(`/api/admin-updates?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    siteUpdates = siteUpdates.filter((item) => item.id !== id);
+    if (els.updateIdInput.value === id) {
+      els.updateForm.reset();
+      els.updateIdInput.value = "";
+      els.updateForm.hidden = true;
+    }
+    renderUpdateAdmin();
+    setMessage("更新记录已删除，首页刷新后生效。");
+  } catch (error) {
+    setMessage(error.message || "删除失败。", true);
+  }
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -637,6 +752,9 @@ els.tabs.forEach((tab) => {
 els.newNewsButton?.addEventListener("click", () => fillNewsForm({ status: "candidate", category: "nihonga_news" }));
 els.newsForm?.addEventListener("submit", saveNews);
 els.deleteNewsButton?.addEventListener("click", () => deleteNews(els.newsIdInput.value.trim()));
+els.newUpdateButton?.addEventListener("click", () => fillUpdateForm({ status: "draft", publishedOn: todayInTokyo() }));
+els.updateForm?.addEventListener("submit", saveUpdate);
+els.deleteUpdateButton?.addEventListener("click", () => deleteUpdate(els.updateIdInput.value.trim()));
 
 els.detectButton.addEventListener("click", () => {
   const text = els.profileInput.value.trim();

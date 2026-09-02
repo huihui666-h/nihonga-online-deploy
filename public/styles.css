@@ -1264,6 +1264,7 @@ button:disabled {
 .news-admin-row .button-row { flex-shrink: 0; }
 .news-admin-row.is-published { border-left: 3px solid var(--pine); }
 .news-admin-row.is-candidate { border-left: 3px solid var(--orange, #c76b3c); }
+.news-admin-row.is-draft { border-left: 3px solid var(--muted); }
 .news-admin-row.is-expired { opacity: .72; }
 
 @media (max-width: 1160px) {

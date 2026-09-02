@@ -584,6 +584,15 @@ IndexUI.init();
 // the directory without having to pass through the welcome screen again.
 setAuthMode("login");
 const initialSession = restoreSession();
+const WELCOME_SEEN_KEY = "nihonga:welcome:seen";
+
+function welcomeWasSeen() {
+  try { return sessionStorage.getItem(WELCOME_SEEN_KEY) === "1"; } catch { return false; }
+}
+
+function rememberWelcome() {
+  try { sessionStorage.setItem(WELCOME_SEEN_KEY, "1"); } catch { /* Navigation still works without storage. */ }
+}
 
 function enterWelcome({ animate = true } = {}) {
   if (els.welcomeOverlay.hidden) return;
@@ -602,11 +611,14 @@ function enterWelcome({ animate = true } = {}) {
 }
 
 els.welcomeEnterBtn.addEventListener("click", () => {
+  rememberWelcome();
   enterWelcome();
   initialSession.then((restored) => {
     if (!restored) showLogin();
   });
 });
+
+if (welcomeWasSeen()) enterWelcome({ animate: false });
 
 initialSession.then((restored) => {
   if (restored) enterWelcome({ animate: false });

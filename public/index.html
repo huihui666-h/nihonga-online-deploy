@@ -10,7 +10,7 @@
     <title>NIHONGA INDEX｜日本画作家インデックス</title>
     <link rel="stylesheet" href="styles.css?v=6" />
     <link rel="stylesheet" href="editorial.css?v=6" />
-    <link rel="stylesheet" href="index.css?v=7" />
+    <link rel="stylesheet" href="index.css?v=8" />
     <link rel="stylesheet" href="news.css?v=4" />
     <link rel="stylesheet" href="announcement.css?v=2" />
     <script src="page-transition.js?v=1"></script>
@@ -185,7 +185,7 @@
         <section id="about" class="about-section"><p class="eyebrow" data-i18n="aboutEyebrow">HUI より</p><h2 data-i18n="aboutTitle">ひとつの発見から、次の出会いへ。</h2><p data-i18n="aboutDescription">大学・展覧会・公募・画廊・公式サイト・SNS など複数の公開情報源から、日本画作家の情報を収集・整理しています。</p></section>
         <section id="site-log" class="site-log-section" aria-labelledby="siteLogTitle">
           <div class="site-log-heading"><div><p class="eyebrow" data-i18n="logEyebrow">HUI LOG</p><h2 id="siteLogTitle" data-i18n="logTitle">更新日志</h2></div><p class="section-caption" data-i18n="logDescription">记录 NIHONGA INDEX 如何一点点生长。</p></div>
-          <ol class="site-log-list">
+          <ol id="siteUpdateList" class="site-log-list" data-source="static" aria-live="polite">
             <li class="site-log-entry"><time datetime="2026-09-01">2026.09.01</time><div><strong data-i18n="logEntryOneTitle">Nihonga Now を公開</strong><p data-i18n="logEntryOneText">展覧会、公募、作家動向をまとめる日本画ニュース欄を追加。</p></div></li>
             <li class="site-log-entry"><time datetime="2026-08-31">2026.08.31</time><div><strong data-i18n="logEntryTwoTitle">最近追加された作家を整理</strong><p data-i18n="logEntryTwoText">追加日がある作家は新しい順に。未設定でも案内を保って表示。</p></div></li>
             <li class="site-log-entry"><time datetime="2026-08-30">2026.08.30</time><div><strong data-i18n="logEntryThreeTitle">検索を入口に</strong><p data-i18n="logEntryThreeText">作家名、学校、地域、キーワードから日本画作家を探せます。</p></div></li>
@@ -269,7 +269,8 @@
     <script src="index-ui.js?v=5"></script>
     <script src="news-data.js?v=4"></script>
     <script src="news-home.js?v=5"></script>
+    <script src="site-updates.js?v=1"></script>
     <script src="announcement.js?v=1"></script>
-    <script src="app.js?v=9"></script>
+    <script src="app.js?v=10"></script>
   </body>
 </html>

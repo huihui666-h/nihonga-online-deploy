@@ -42,6 +42,14 @@
       "destination": "/api/artists?resource=news"
     },
     {
+      "source": "/api/admin-updates",
+      "destination": "/api/artists?resource=admin-updates"
+    },
+    {
+      "source": "/api/updates",
+      "destination": "/api/artists?resource=updates"
+    },
+    {
       "source": "/news",
       "destination": "/news.html"
     },
