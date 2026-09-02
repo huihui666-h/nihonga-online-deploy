@@ -78,6 +78,7 @@ assert.doesNotThrow(() => vm.runInContext('I18N.setLang("zh")', blockedLanguageC
 assert.equal(vm.runInContext("I18N.current", blockedLanguageContext), "zh", "Language selection works without storage");
 const translations = vm.runInContext("I18N.data", context);
 assert.equal(translations.ja.recentUnavailable, "新たに加わった作家を、順次こちらで紹介します。", "Japanese Recently Added empty state uses the requested copy");
+assert.match(translations.ja.featuredDaily, /1時間ごと/, "Japanese featured copy describes the hourly rotation");
 const html = fs.readFileSync(path.join(__dirname, "../public/index.html"), "utf8");
 const app = fs.readFileSync(path.join(__dirname, "../public/app.js"), "utf8");
 assert.match(html, /<section id="recent" class="index-section"[^>]*>/, "Recently Added section remains in the homepage markup");

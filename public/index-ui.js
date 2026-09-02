@@ -11,6 +11,8 @@ const IndexUI = (() => {
   let savedBrowse = null;
   let shared = null;
   let resumed = false;
+  let featuredRotationKey = "";
+  let featuredRotationTimer;
   let scrollTimer;
   const $ = (id) => document.getElementById(id);
   const t = (key, ...args) => I18N.t(key, ...args);
@@ -194,9 +196,10 @@ const IndexUI = (() => {
       empty($("randomArtist"), "noDiscovery");
       return;
     }
-    const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo" }).format(new Date());
+    const hour = ArtistIndex.rotationHourKey(new Date());
+    featuredRotationKey = hour;
     $("featuredDescription").textContent = t(allArtists.some((artist) => artist.featured === true) ? "featuredManual" : "featuredDaily");
-    $("featuredGrid").replaceChildren(...ArtistIndex.featured(allArtists, date).map((artist, index) => createCard(artist, { kind: "featured", index })));
+    $("featuredGrid").replaceChildren(...ArtistIndex.featured(allArtists, hour).map((artist, index) => createCard(artist, { kind: "featured", index })));
     const recent = ArtistIndex.recent(allArtists);
     if (recent.length) $("recentGrid").replaceChildren(...recent.map((artist) => createCard(artist, { kind: "recent" })));
     else empty($("recentGrid"), "recentUnavailable");
@@ -342,6 +345,16 @@ const IndexUI = (() => {
     if ($("artistDialog").open) renderDetail();
   }
 
+  function scheduleFeaturedRotation() {
+    clearTimeout(featuredRotationTimer);
+    const hourMs = 60 * 60 * 1000;
+    const delay = hourMs - (Date.now() % hourMs) + 250;
+    featuredRotationTimer = setTimeout(() => {
+      if (state.loaded && !state.loading && ArtistIndex.rotationHourKey(new Date()) !== featuredRotationKey) renderDiscovery();
+      scheduleFeaturedRotation();
+    }, delay);
+  }
+
   function init() {
     shared = IndexPreferences.fromUrl(location.href);
     let stored;
@@ -374,6 +387,9 @@ const IndexUI = (() => {
     });
     window.addEventListener("scroll", () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(persistBrowse, 150); }, { passive: true });
     window.addEventListener("pagehide", persistBrowse);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && state.loaded && !state.loading && ArtistIndex.rotationHourKey(new Date()) !== featuredRotationKey) renderDiscovery();
+    });
     window.addEventListener("storage", (event) => { if (event.key === null || event.key?.startsWith("nihonga:favorites:v1:")) { IndexAccount.render(); renderCards(false); if ($("artistDialog").open) renderDetail(); } });
     document.querySelectorAll(".submission-panel").forEach((panel) => panel.addEventListener("toggle", renderContributionLabels));
     ["region", "school", "tag"].forEach((field) => $(`${field}Filters`).addEventListener("change", (event) => { state[field] = event.target.value; renderCards(); }));
@@ -410,6 +426,7 @@ const IndexUI = (() => {
       if (response.status === "coming-soon") { finderSent = true; $("finderStatus").textContent = t("finderComingSoon"); }
     });
     render();
+    scheduleFeaturedRotation();
     syncAccess();
   }
   function persistBrowse() {

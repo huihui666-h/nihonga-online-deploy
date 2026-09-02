@@ -55,9 +55,22 @@
       && (!text(filters.query) || haystack.includes(normalize(filters.query.trim())));
   };
   const hash = (value) => Array.from(String(value)).reduce((n, char) => Math.imul(n ^ char.charCodeAt(0), 16777619) >>> 0, 2166136261);
-  const featured = (artists, day, count = 4) => {
+  const rotationHourKey = (value = new Date()) => {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    const parts = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Tokyo",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      hourCycle: "h23"
+    }).formatToParts(date).filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+    return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}`;
+  };
+  const featured = (artists, period, count = 4) => {
     const manual = artists.filter((artist) => artist.featured === true);
-    const rest = artists.filter((artist) => artist.featured !== true).slice().sort((a, b) => hash(`${day}:${a.id}`) - hash(`${day}:${b.id}`));
+    const rest = artists.filter((artist) => artist.featured !== true).slice().sort((a, b) => hash(`${period}:${a.id}`) - hash(`${period}:${b.id}`));
     return [...manual, ...rest].slice(0, count);
   };
   const recent = (artists, count = 4) => artists.filter((artist) => addedTime(artist) !== null).slice().sort((a, b) => addedTime(b) - addedTime(a)).slice(0, count);
@@ -69,7 +82,7 @@
     const byId = new Map(artists.filter((artist) => typeof artist.id === "string").map((artist) => [artist.id, artist]));
     return [...new Set(Array.isArray(ids) ? ids.filter((id) => typeof id === "string") : [])].map((id) => byId.get(id)).filter(Boolean);
   };
-  const helpers = { clean, normalize, tags, safeUrl, instagram, validHandle, slug, addedTime, editorial, matches, featured, recent, random, resolveIds };
+  const helpers = { clean, normalize, tags, safeUrl, instagram, validHandle, slug, addedTime, editorial, matches, rotationHourKey, featured, recent, random, resolveIds };
   if (typeof module !== "undefined" && module.exports) module.exports = helpers;
   else root.ArtistIndex = Object.freeze(helpers);
 })(typeof window !== "undefined" ? window : this);
