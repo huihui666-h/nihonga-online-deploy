@@ -128,6 +128,7 @@ async function main() {
   assert.strictEqual(current.statusCode, 200);
   assert.strictEqual(current.json().authenticated, true);
   assert.strictEqual(current.json().user.email, "artist@example.com");
+  assert.ok(users[0].last_seen_at, "session checks persist the user's last activity");
 
   const guestSubmission = await call(submitArtist, "POST", {
     name: "测试画家",

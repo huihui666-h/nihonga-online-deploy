@@ -15,7 +15,8 @@ create table if not exists public.site_users (
   email_verified_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  last_login_at timestamptz
+  last_login_at timestamptz,
+  last_seen_at timestamptz
 );
 
 -- Keep this migration usable if a partially-created table already exists.
@@ -27,6 +28,7 @@ alter table public.site_users add column if not exists email_verified_at timesta
 alter table public.site_users add column if not exists created_at timestamptz default now();
 alter table public.site_users add column if not exists updated_at timestamptz default now();
 alter table public.site_users add column if not exists last_login_at timestamptz;
+alter table public.site_users add column if not exists last_seen_at timestamptz;
 
 -- Email is normalized to lowercase by the API. The functional index also
 -- protects against duplicates if a client bypasses that normalization.

@@ -20,8 +20,8 @@ const users = [{
 }];
 const artists = [{ id: "artist-1", name: "Test Artist", updated_at: "2026-09-01T00:00:00.000Z" }];
 const sessions = [
-  { id: "session-target", user_id: targetUserId },
-  { id: "session-other", user_id: otherUserId }
+  { id: "session-target", user_id: targetUserId, last_seen_at: "2026-09-01T02:00:00.000Z" },
+  { id: "session-other", user_id: otherUserId, last_seen_at: "2026-09-01T03:00:00.000Z" }
 ];
 const calls = [];
 
@@ -134,6 +134,7 @@ async function main() {
   assert.strictEqual(listed.statusCode, 200);
   assert.strictEqual(listed.headers["cache-control"], "no-store");
   assert.strictEqual(listed.json().users[0].email, "member@example.com");
+  assert.strictEqual(listed.json().users[0].lastSeenAt, "2026-09-01T02:00:00.000Z");
   assert.ok(!listed.body.includes("password_hash"));
   assert.ok(!listed.body.includes("must-never-leave-the-api"));
 

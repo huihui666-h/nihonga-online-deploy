@@ -1,6 +1,10 @@
 ﻿const ALL = "全部";
 const CACHE_KEY = "nihongaOnlineArtists";
 const GUEST_KEY = "nihongaGuestAccess";
+const ACTIVITY_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+let activitySyncTimer = null;
+let lastActivitySyncAt = 0;
+let activitySyncInFlight = false;
 
 const state = {
   artists: [],
@@ -101,6 +105,39 @@ async function api(path, options = {}) {
   return data;
 }
 
+function stopActivityTracking() {
+  if (activitySyncTimer) clearInterval(activitySyncTimer);
+  activitySyncTimer = null;
+  lastActivitySyncAt = 0;
+  activitySyncInFlight = false;
+}
+
+async function syncSessionActivity() {
+  if (activitySyncInFlight || !state.user || state.user.guest || document.visibilityState === "hidden") return;
+  if (Date.now() - lastActivitySyncAt < ACTIVITY_SYNC_INTERVAL_MS) return;
+  activitySyncInFlight = true;
+  try {
+    const result = await api("/api/auth-session", { method: "GET" });
+    if (isAuthenticatedResponse(result)) {
+      state.user = authUserFromResponse(result) || state.user;
+      lastActivitySyncAt = Date.now();
+    } else {
+      stopActivityTracking();
+    }
+  } catch {
+    // Activity tracking must never interrupt browsing. A later interval or
+    // visibility change will retry after the minimum write interval.
+  } finally {
+    activitySyncInFlight = false;
+  }
+}
+
+function startActivityTracking() {
+  stopActivityTracking();
+  lastActivitySyncAt = Date.now();
+  activitySyncTimer = setInterval(syncSessionActivity, ACTIVITY_SYNC_INTERVAL_MS);
+}
+
 function authUserFromResponse(data) {
   if (!data || typeof data !== "object") return null;
   if (data.user && typeof data.user === "object") return data.user;
@@ -147,6 +184,7 @@ function showLogin(message = "", isError = false) {
 async function unlockWithSession(result, silent = false) {
   sessionStorage.removeItem(GUEST_KEY);
   state.user = authUserFromResponse(result) || {};
+  startActivityTracking();
   if (!silent) setMessage(result.message || I18N.t("loginSuccess"));
   await loadArtists();
   await loadRankings();
@@ -155,6 +193,7 @@ async function unlockWithSession(result, silent = false) {
 }
 
 async function unlockAsGuest(silent = false) {
+  stopActivityTracking();
   state.user = { guest: true };
   sessionStorage.setItem(GUEST_KEY, "1");
   if (!silent) setMessage(I18N.t("guestLoading"));
@@ -439,6 +478,7 @@ els.logoutButton.addEventListener("click", async () => {
   } catch {
     // Clear the local view even if the server session has already expired.
   } finally {
+    stopActivityTracking();
     els.logoutButton.disabled = false;
     sessionStorage.removeItem(GUEST_KEY);
     state.user = null;
@@ -450,6 +490,10 @@ els.logoutButton.addEventListener("click", async () => {
     IndexUI.accountChanged();
     showLogin(I18N.t("msgLogout"));
   }
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") syncSessionActivity();
 });
 
 function setMobileFiltersOpen(open) {

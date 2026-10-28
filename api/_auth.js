@@ -302,16 +302,14 @@ async function getSessionUser(req) {
   const user = await findUserById(session.user_id);
   if (!user || user.status !== "active") return null;
 
-  try {
-    await supabaseFetch(`site_sessions?id=eq.${encodeURIComponent(session.id)}`, {
+  await Promise.allSettled([
+    supabaseFetch(`site_sessions?id=eq.${encodeURIComponent(session.id)}`, {
       method: "PATCH",
       headers: { prefer: "return=minimal" },
       body: JSON.stringify({ last_seen_at: new Date().toISOString() })
-    });
-  } catch {
-    // A last-seen timestamp is observability only; it must not log a valid
-    // user out if a transient write fails.
-  }
+    }),
+    touchUserActivity(user.id)
+  ]);
 
   return { user, session, token };
 }
@@ -335,6 +333,21 @@ async function updateLastLogin(userId) {
   } catch (error) {
     throw authTableError(error);
   }
+  await touchUserActivity(userId);
+}
+
+async function touchUserActivity(userId) {
+  if (!userId) return;
+  try {
+    await supabaseFetch(`site_users?id=eq.${encodeURIComponent(userId)}`, {
+      method: "PATCH",
+      headers: { prefer: "return=minimal" },
+      body: JSON.stringify({ last_seen_at: new Date().toISOString() })
+    });
+  } catch {
+    // Activity is observability only. Keep authentication working during a
+    // rolling deploy or a transient database write failure.
+  }
 }
 
 module.exports = {
@@ -355,6 +368,7 @@ module.exports = {
   setSessionCookie,
   sessionDays,
   sendAuthJson,
+  touchUserActivity,
   updateLastLogin,
   validatePassword,
   verifyPassword

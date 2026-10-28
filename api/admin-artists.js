@@ -163,15 +163,30 @@ module.exports = async function handler(req, res) {
 };
 
 async function handleUsers(req, res, url) {
-  const select = "id,email,display_name,status,email_verified_at,created_at,last_login_at";
+  const baseSelect = "id,email,display_name,status,email_verified_at,created_at,last_login_at";
+  const activitySelect = `${baseSelect},last_seen_at`;
   const listLimit = 1000;
   res.setHeader("Cache-Control", "no-store");
 
   if (req.method === "GET") {
-    const rows = await supabaseFetch(`site_users?select=${select}&order=created_at.desc&limit=${listLimit}`);
+    let rows;
+    try {
+      rows = await supabaseFetch(`site_users?select=${activitySelect}&order=created_at.desc&limit=${listLimit}`);
+    } catch (error) {
+      if (!missingLastSeenColumn(error)) throw error;
+      rows = await supabaseFetch(`site_users?select=${baseSelect}&order=created_at.desc&limit=${listLimit}`);
+    }
+    const latestSessionActivity = await loadLatestSessionActivity();
     sendJson(res, 200, {
       ok: true,
-      users: rows.map(publicUser),
+      users: rows.map((row) => ({
+        ...publicUser(row),
+        lastSeenAt: latestTimestamp(
+          row.last_seen_at,
+          latestSessionActivity.get(row.id),
+          row.last_login_at
+        )
+      })),
       listLimit,
       atLimit: rows.length >= listLimit
     });
@@ -206,7 +221,7 @@ async function handleUsers(req, res, url) {
         sendJson(res, 400, { ok: false, message: passwordError });
         return;
       }
-      const rows = await supabaseFetch(`site_users?id=eq.${encodeURIComponent(id)}&select=${select}`, {
+      const rows = await supabaseFetch(`site_users?id=eq.${encodeURIComponent(id)}&select=${baseSelect}`, {
         method: "PATCH",
         headers: { prefer: "return=representation" },
         body: JSON.stringify({ password_hash: await hashPassword(newPassword), updated_at: new Date().toISOString() })
@@ -230,7 +245,7 @@ async function handleUsers(req, res, url) {
       await supabaseFetch(`site_sessions?user_id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
     }
 
-    const rows = await supabaseFetch(`site_users?id=eq.${encodeURIComponent(id)}&select=${select}`, {
+    const rows = await supabaseFetch(`site_users?id=eq.${encodeURIComponent(id)}&select=${baseSelect}`, {
       method: "PATCH",
       headers: { prefer: "return=representation" },
       body: JSON.stringify({ status })
@@ -249,4 +264,35 @@ async function handleUsers(req, res, url) {
   }
 
   sendJson(res, 405, { ok: false, message: "注册用户管理不支持此操作。" });
+}
+
+async function loadLatestSessionActivity() {
+  try {
+    const rows = await supabaseFetch(
+      "site_sessions?select=user_id,last_seen_at&order=last_seen_at.desc&limit=5000"
+    );
+    const latest = new Map();
+    (Array.isArray(rows) ? rows : []).forEach((row) => {
+      if (!row.user_id || !row.last_seen_at) return;
+      latest.set(row.user_id, latestTimestamp(latest.get(row.user_id), row.last_seen_at));
+    });
+    return latest;
+  } catch {
+    // User management should remain available even if activity telemetry is
+    // temporarily unavailable.
+    return new Map();
+  }
+}
+
+function latestTimestamp(...values) {
+  return values.reduce((latest, value) => {
+    const time = Date.parse(value || "");
+    if (!Number.isFinite(time)) return latest;
+    return !latest || time > Date.parse(latest) ? value : latest;
+  }, "");
+}
+
+function missingLastSeenColumn(error) {
+  const detail = String(error && (error.upstreamMessage || error.message || ""));
+  return /last_seen_at|column .* does not exist|schema cache/i.test(detail);
 }

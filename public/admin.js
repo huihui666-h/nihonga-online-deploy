@@ -269,6 +269,7 @@ function renderUsers() {
       <div role="cell"><span class="user-status ${isActive ? "is-active" : "is-disabled"}">${isActive ? "正常" : "已停用"}</span></div>
       <div class="user-date" role="cell"><span>注册时间</span><time>${escapeHtml(formatAdminDate(user.createdAt, "未知"))}</time></div>
       <div class="user-date" role="cell"><span>最后登录</span><time>${escapeHtml(formatAdminDate(user.lastLoginAt, "暂无记录"))}</time></div>
+      <div class="user-date" role="cell"><span>最后使用</span><time>${escapeHtml(formatAdminDate(user.lastSeenAt, "暂无记录"))}</time></div>
       <div class="user-action" role="cell"><button data-user-action="status" class="${isActive ? "danger" : "secondary"}" type="button">${isActive ? "停用账户" : "重新启用"}</button><button data-user-action="password" class="secondary" type="button">重设密码</button></div>
     `;
 
@@ -360,7 +361,7 @@ async function changeUserStatus(user, nextStatus, button) {
       method: "PATCH",
       body: JSON.stringify({ status: nextStatus })
     });
-    users = users.map((item) => item.id === user.id ? data.user : item);
+    users = users.map((item) => item.id === user.id ? { ...item, ...data.user } : item);
     setMessage(nextStatus === "active" ? "用户已重新启用，旧会话已清除。" : "用户已停用并退出登录。");
     renderUsers();
   } catch (error) {

@@ -1087,7 +1087,7 @@ button:disabled {
 .user-table-head,
 .user-row {
   display: grid;
-  grid-template-columns: minmax(210px, 1.35fr) 92px minmax(145px, 0.82fr) minmax(145px, 0.82fr) 150px;
+  grid-template-columns: minmax(190px, 1.25fr) 82px repeat(3, minmax(128px, 0.78fr)) 140px;
   gap: 14px;
   align-items: center;
 }

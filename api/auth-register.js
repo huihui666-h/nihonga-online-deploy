@@ -17,6 +17,7 @@ const {
   requireSameOrigin,
   sendAuthJson,
   setSessionCookie,
+  touchUserActivity,
   validatePassword
 } = require("./_auth");
 
@@ -95,6 +96,7 @@ module.exports = async function handler(req, res) {
     }
 
     const session = await createSession(req, user.id, body.remember !== false);
+    await touchUserActivity(user.id);
     setSessionCookie(req, res, session.token, session.maxAge);
     sendAuthJson(res, 201, {
       ok: true,
